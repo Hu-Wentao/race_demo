@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 
@@ -28,6 +30,8 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatelessWidget {
   HomePage({Key key, this.title}) : super(key: key);
   final String title;
+
+//  StreamTransformer _filterDevice = new StreamTransformer<List<ScanResult>, List<ScanResult>>.fromHandlers(handleData: (data, sink));
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +78,9 @@ class HomePage extends StatelessWidget {
               ),
               TextDivider("扫描结果"),
               StreamBuilder<List<ScanResult>>(
-                stream: FlutterBlue.instance.scanResults,
+                /// 只显示 race开头的设备  *********************** 在这里过滤设备 **********
+                stream: FlutterBlue.instance.scanResults.where((event) =>
+                    (event as ScanResult).device.name.startsWith("Race")),
                 initialData: [],
                 builder: (buildContext, asyncSnapshot) => Column(
                     children: asyncSnapshot.data
