@@ -79,23 +79,23 @@ class HomePage extends StatelessWidget {
               TextDivider("扫描结果"),
               StreamBuilder<List<ScanResult>>(
                 /// 只显示 race开头的设备  *********************** 在这里过滤设备 **********
-                stream: FlutterBlue.instance.scanResults.where((event) =>
-                    (event as ScanResult).device.name.startsWith("Race")),
+                stream: FlutterBlue.instance.scanResults.where((event) {
+                  // todo del #######
+                  print((event as ScanResult).device.name.toString());
+
+                  return true;
+//                  return (event as ScanResult).device.name.startsWith("Race");
+                }),
                 initialData: [],
                 builder: (buildContext, asyncSnapshot) => Column(
                     children: asyncSnapshot.data
-                        .map((data) => RadiusContainer(
-                              child: ScanResultTile(
-                                  result: data,
-                                  onTap: () => Navigator.of(context).push(
-                                        MaterialPageRoute(builder: (context) {
-                                          data.device.connect();
-                                          return DeviceScreen(
-                                              device: data.device);
-                                        }),
-                                      )),
-                            ))
-                        .toList()),
+                            ?.map((data) => RadiusContainer(
+                                  child: ScanResultTile(
+                                      result: data,
+                                      onTap: _jumpToDeviceScreen(context, data)),
+                                ))
+                            ?.toList() ??
+                        [Text("没有扫描到Race开头的设备")]),
               )
             ],
           ),
@@ -135,6 +135,16 @@ class HomePage extends StatelessWidget {
           },
         )
       ],
+    );
+  }
+
+  /// 跳转到设备页面
+  _jumpToDeviceScreen(BuildContext context, ScanResult data) {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) {
+//        data.device.connect();
+        return DeviceScreen(device: data.device);
+      }),
     );
   }
 }
