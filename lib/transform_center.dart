@@ -1,3 +1,0 @@
-//class TransformCenter{
-//  Transform t =
-//}
