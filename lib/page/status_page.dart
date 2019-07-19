@@ -134,14 +134,17 @@ class StatusPage extends StatelessWidget {
       case BleScanState.STOP_SCAN:
         return RaisedButton(
           child: Text("Tap to Scan"),
-          onPressed: () =>
-              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null)),
+          onPressed: () {
+            print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
+            inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
+          }
         );
       case BleScanState.CONNECTING:
         return RaisedButton(
           child: Text("Connecting..."),
-          onPressed: () =>
-              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null)),
+          onPressed: () {
+            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+          }
         );
         break;
       case BleScanState.PLEASE_OPEN_BLE:

@@ -58,11 +58,11 @@ class StatusPageBloc extends BaseBloc {
         _scanDevice();
         break;
       case Operate.CONNECT_DEVICE:
-        _connectDevice(info.data);
+        _connectDevice(info.device);
         break;
       case Operate.STOP_SCANNING:
         print('StatusPageBloc._onGetAction 尝试停止扫描蓝牙..');
-//        FlutterBlue.instance.stopScan();
+        FlutterBlue.instance.stopScan();
         break;
     }
 
@@ -122,7 +122,9 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-    FlutterBlue.instance.isScanning.listen((isScanning) {
+    FlutterBlue.instance.isScanning
+//        .take(3)
+        .listen((isScanning) {
       if (isScanning) {
         print('StatusPageBloc._scanDevice 蓝牙已经开始扫描, 拒绝请求');
         // del VVV
@@ -131,10 +133,13 @@ class StatusPageBloc extends BaseBloc {
         // del AAA
       } else {
         print('StatusPageBloc._scanDevice 开始扫描');
-        FlutterBlue.instance.startScan(timeout: const Duration(seconds: 4));
-        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
+          FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
+          _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
       }
-    });
+    })
+//        .cancel()
+    ;
+
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.where((resultList) {
@@ -159,38 +164,38 @@ class StatusPageBloc extends BaseBloc {
         print(
             'StatusPageBloc._scanDevice 发现了一个合适的设备: ${rightList[0].device.name}, 正在连接');
 //        rightList[0].device.connect();
-        inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0]));
+        inBleOperator
+            .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0].device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
       } else {
         print('StatusPageBloc._scanDevice 发现了多个合适设备: $rightList, 自动选择信号最强的设备');
         rightList = rightList.where((r) => r.rssi < 0).toList();
         rightList.sort(((a, b) => b.rssi - a.rssi));
 //        rightList.first.device.connect();
-        inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first));
+        inBleOperator
+            .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first.device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
         print(
-            'StatusPageBloc._scanDevice 最终选择连接的设备是${rightList.first}, 发出 STOP_CANNING 请求');
+            'StatusPageBloc._scanDevice 最终选择连接的设备是 ${rightList.first}, 发出 STOP_CANNING 请求');
       }
     });
   }
 
-  _connectDevice(Object bleDevice) {
-    if (!(bleDevice is BluetoothDevice)) {
-      print('StatusPageBloc._connectDevice 传入参数错误: $bleDevice');
-      return;
-    }
-    BluetoothDevice device = bleDevice as BluetoothDevice;
+  _connectDevice(BluetoothDevice device) {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
     device.connect();
+//    inBleOperator.add(BleOpInfo(Op, data))
+    _inSetBtnState
+        .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));
   }
 }
 
 // 与 _bleOperateController 配合使用
 class BleOpInfo {
   final Operate op;
-  final Object data;
+  final BluetoothDevice device;
 
-  BleOpInfo(this.op, this.data);
+  BleOpInfo(this.op, this.device);
 }
 
 enum Operate {
