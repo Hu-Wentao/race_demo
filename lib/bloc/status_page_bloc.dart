@@ -61,7 +61,6 @@ class StatusPageBloc extends BaseBloc {
         _connectDevice(info.device);
         break;
       case Operate.STOP_SCANNING:
-        print('StatusPageBloc._onGetAction 尝试停止扫描蓝牙..');
         FlutterBlue.instance.stopScan();
         break;
     }
@@ -122,24 +121,20 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-    FlutterBlue.instance.isScanning
-//        .take(3)
-        .listen((isScanning) {
-      if (isScanning) {
-        print('StatusPageBloc._scanDevice 蓝牙已经开始扫描, 拒绝请求');
-        // del VVV
-//        print('StatusPageBloc._scanDevice  触发 _FIND_IN_CONNECTED ');
-//        inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
-        // del AAA
-      } else {
+//    FlutterBlue.instance.isScanning
+//        .listen((isScanning) {
+//      if (isScanning) {
+//        print('StatusPageBloc._scanDevice 蓝牙已经开始扫描, 拒绝请求');
+//        // del VVV
+////        print('StatusPageBloc._scanDevice  触发 _FIND_IN_CONNECTED ');
+////        inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
+//        // del AAA
+//      } else {
         print('StatusPageBloc._scanDevice 开始扫描');
-          FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
-          _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
-      }
-    })
-//        .cancel()
-    ;
-
+        FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
+        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
+//      }
+//    });
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.where((resultList) {
