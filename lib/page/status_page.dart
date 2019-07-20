@@ -55,6 +55,7 @@ class StatusPage extends StatelessWidget {
     );
   }
 
+  // 对控件的包装
   _buildInfoBlock(BuildContext context, List<Widget> childrenList) {
     return RadiusContainer(
       child: Column(
@@ -69,7 +70,7 @@ class StatusPage extends StatelessWidget {
         title: Text("Connecting Device"),
         trailing: StreamBuilder<BtnStreamOpInfo>(
           stream: bloc.outGetBtnState,
-          initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
+//          initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
             return _buildBtnBy(snapshot.data, bloc.inBleOperator);
           },
@@ -121,6 +122,7 @@ class StatusPage extends StatelessWidget {
     ];
   }
 
+////////////////////////////////////////////////////////////////////////////////
   _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator) {
     switch (info.state) {
       case BleScanState.SCANNING:
@@ -133,19 +135,17 @@ class StatusPage extends StatelessWidget {
         );
       case BleScanState.STOP_SCAN:
         return RaisedButton(
-          child: Text("Tap to Scan"),
-          onPressed: () {
-            print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
-            inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
-          }
-        );
+            child: Text("Tap to Scan"),
+            onPressed: () {
+              print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
+              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
+            });
       case BleScanState.CONNECTING:
         return RaisedButton(
-          child: Text("Connecting..."),
-          onPressed: () {
-            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
-          }
-        );
+            child: Text("Connecting..."),
+            onPressed: () {
+              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+            });
         break;
       case BleScanState.PLEASE_OPEN_BLE:
         return Text(
@@ -178,7 +178,7 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        return Text("Connected: ${(info.data as BluetoothDevice).name}");
+        return Text("${(info.data as BluetoothDevice).name}");
         break;
     }
   }

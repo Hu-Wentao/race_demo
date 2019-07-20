@@ -1,0 +1,4 @@
+enum ReduxAppAction{
+  setConnectedDevice,
+  removeConnectDevice,
+}

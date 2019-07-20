@@ -5,21 +5,13 @@ import 'package:flutter_blue/flutter_blue.dart';
 import 'base_bloc.dart';
 
 class StatusPageBloc extends BaseBloc {
+  BluetoothDevice connectedDevice;
+
   @override
   void dispose() {
-//    _dataController.close();
     _bleOperatorController.close();
     _btnDataController.close();
   }
-
-  // 每次新建实例的时候, [getDataCount] 都是0,
-  // 所以如果要判断是否是第一次触发, 就判断该变量是否为0
-
-// 声明广播, 接受用户操作  在构建页面时触发
-//  StreamController<List<ScanResult>> _dataController =
-//      new StreamController.broadcast();
-//  StreamSink<List<ScanResult>> get _inAddData => _dataController.sink;
-//  Stream<List<ScanResult>> get outGetData => _getStreamData();
 
   // 声明广播, 对widget开放,控制 连接蓝牙设备 的整个流程
   StreamController<BleOpInfo> _bleOperatorController =
@@ -64,28 +56,39 @@ class StatusPageBloc extends BaseBloc {
         FlutterBlue.instance.stopScan();
         break;
     }
-
-    // 向流中输入
-//    _inAddData.addStream();
   }
-
-  // 获取数据输出流, 提供给StreamBuilder
-//  _getStreamData() {
-//    return _dataController.stream.where();
-//  }
 
   // 检测蓝牙是否打开
   _checkAndOpenBle() {
     FlutterBlue.instance.state.listen((bleState) {
-      if (bleState == BluetoothState.on) {
-        print('StatusPageBloc._onGetAction 监听到蓝牙已开启, 激活 _FIND_IN_CONNECTED 事件');
-        inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
-        return true;
-      } else {
-        print('StatusPageBloc._onGetAction 蓝牙未开启 或 处于其他状态 todo #############');
-        // todo 使用 bluetooth_serial 库 开启蓝牙, 或者自己写一个 MethodChannel
-        return false;
+      switch (bleState) {
+        case BluetoothState.unknown:
+          // TODO: Handle this case.
+          break;
+        case BluetoothState.unavailable:
+          // TODO: Handle this case.
+          break;
+        case BluetoothState.unauthorized:
+          // TODO: Handle this case.
+          break;
+        case BluetoothState.turningOn:
+          // TODO: Handle this case.
+          break;
+        case BluetoothState.on:
+          print(
+              'StatusPageBloc._onGetAction 监听到蓝牙已开启, 激活 _FIND_IN_CONNECTED 事件');
+          inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
+          return true;
+        case BluetoothState.turningOff:
+          // TODO: Handle this case.
+          break;
+        case BluetoothState.off:
+          print(
+              'StatusPageBloc._onGetAction 蓝牙未开启 或 处于其他状态 todo #############');
+//        // todo 使用 bluetooth_serial 库 开启蓝牙, 或者自己写一个 MethodChannel
+          break;
       }
+      return false;
     });
   }
 
@@ -121,20 +124,8 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-//    FlutterBlue.instance.isScanning
-//        .listen((isScanning) {
-//      if (isScanning) {
-//        print('StatusPageBloc._scanDevice 蓝牙已经开始扫描, 拒绝请求');
-//        // del VVV
-////        print('StatusPageBloc._scanDevice  触发 _FIND_IN_CONNECTED ');
-////        inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
-//        // del AAA
-//      } else {
-        print('StatusPageBloc._scanDevice 开始扫描');
-        FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
-        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
-//      }
-//    });
+    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
+    _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.where((resultList) {
@@ -166,7 +157,6 @@ class StatusPageBloc extends BaseBloc {
         print('StatusPageBloc._scanDevice 发现了多个合适设备: $rightList, 自动选择信号最强的设备');
         rightList = rightList.where((r) => r.rssi < 0).toList();
         rightList.sort(((a, b) => b.rssi - a.rssi));
-//        rightList.first.device.connect();
         inBleOperator
             .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first.device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));

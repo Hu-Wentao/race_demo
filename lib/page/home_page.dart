@@ -4,6 +4,9 @@ import 'package:race_demo/bloc/base_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 
+//import 'package:race_demo/redux/redux.dart';
+//import 'package:race_demo/redux/redux_app_state.dart';
+
 import 'settings_page.dart';
 import 'status_page.dart';
 
@@ -37,6 +40,8 @@ class HomePage extends StatelessWidget {
                 ),
               );
               break;
+//            case 2:
+
           }
           return null;
         });
