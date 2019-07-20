@@ -15,7 +15,6 @@ class StatusPage extends StatelessWidget {
 
   const StatusPage({Key key, this.title}) : super(key: key);
 
-
   @override
   Widget build(BuildContext context) {
     final StatusPageBloc _bloc = BlocProvider.of<StatusPageBloc>(context);
@@ -31,6 +30,7 @@ class StatusPage extends StatelessWidget {
               child: SingleChildScrollView(
                   child: Column(
                 children: <Widget>[
+                  Text(appInfo),// todo del ...........................
                   TextDivider(
                     "Device Status",
                     padLTRB: const [16, 8, 16, 0],
@@ -124,7 +124,8 @@ class StatusPage extends StatelessWidget {
   }
 
 ////////////////////////////////////////////////////////////////////////////////
-  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator, BuildContext context) {
+  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator,
+      BuildContext context) {
     switch (info.state) {
       case BleScanState.SCANNING:
         return RaisedButton(
@@ -170,7 +171,7 @@ class StatusPage extends StatelessWidget {
                   case "RaceDB_0011":
                   case "Race_0002":
                     print(
-                        'StatusPage._buildBtnBy 发现列表找包含: ${d.name} 已自动选择该设备 #### todo ');
+                        'StatusPage._buildBtnBy 列表中包含: ${d.name} 已自动选择该设备 #### todo ');
                     inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, d));
                     break;
                 }
@@ -179,9 +180,9 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-
-//        StoreProvider.of(context).state;
-        return Text("${(info.data as BluetoothDevice).name}");
+        return FlatButton(
+            onPressed: ()=>StoreProvider.of(context).dispatch(ReduxAppAction(ActionType.changAppInfo, "this is new App info lala")), /// todo
+            child: Text("${(info.data as BluetoothDevice).name}"));
         break;
     }
   }

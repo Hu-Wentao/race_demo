@@ -128,22 +128,26 @@ class StatusPageBloc extends BaseBloc {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
-    FlutterBlue.instance.scanResults.where((resultList) {
-      bool haveRightDevice = false;
-      resultList.forEach((r) {
-        switch (r.device.name) {
-//          case"RaceDB_0020":
-//          case"RaceDB_0021":
-          case "RaceDB_0010":
-          case "RaceDB_0011":
-          case "Race_0002":
-            print('StatusPageBloc._scanDevice 在扫描结果中找到 ${r.device.name}');
-            haveRightDevice = true;
-            break;
-        }
-      });
-      return haveRightDevice;
-    }).listen((rightList) {
+    FlutterBlue.instance.scanResults
+//        .where((resultList) {
+//      bool haveRightDevice = false;
+//      resultList.forEach((r) {
+//        switch (r.device.name) {
+//          case "RaceDB_0020":
+//          case "RaceDB_0021":
+//          case "RaceDB_0010":
+//          case "RaceDB_0011":
+//          case "Race_0002":
+//            print('StatusPageBloc._scanDevice 在扫描结果中找到 ${r.device.name}');
+//            haveRightDevice = true;
+//            break;
+//        }
+//      });
+//      return haveRightDevice;
+//    })
+        .listen((list) {
+      var rightList =
+          list.where((d) => d.device.name.startsWith("Race")).toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
       } else if (rightList.length == 1) {
