@@ -10,8 +10,8 @@ class TextDivider extends StatelessWidget {
   TextDivider(
     this.title, {
     Key key,
-    this.padLTRB: const [16.0, 8.0, 16.0, 8.0],
-    this.showDivider: true,
+    this.padLTRB: const [16.0, 8.0, 16.0, 0.0],
+    this.showDivider: false,
     this.textColor,
   }) : super(key: key);
 

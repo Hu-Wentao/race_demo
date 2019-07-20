@@ -7,7 +7,6 @@ import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 
-
 class StatusPage extends StatelessWidget {
   final String title;
 
@@ -29,23 +28,11 @@ class StatusPage extends StatelessWidget {
         child: SingleChildScrollView(
             child: Column(
           children: <Widget>[
-            TextDivider(
-              "Device Status",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
-            ),
+            TextDivider("Device Status"),
             _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
-            TextDivider(
-              "Position Information",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
-            ),
+            TextDivider("Position Information"),
             _buildInfoBlock(context, _buildPositionInformation(context)),
-            TextDivider(
-              "Position Confidence",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
-            ),
+            TextDivider("Position Confidence"),
             _buildInfoBlock(context, _buildPositionConfidence(context)),
           ],
         )),
@@ -131,19 +118,17 @@ class StatusPage extends StatelessWidget {
         );
       case BleScanState.STOP_SCAN:
         return RaisedButton(
-          child: Text("Tap to Scan"),
-          onPressed: () {
-            print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
-            inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
-          }
-        );
+            child: Text("Tap to Scan"),
+            onPressed: () {
+              print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
+              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
+            });
       case BleScanState.CONNECTING:
         return RaisedButton(
-          child: Text("Connecting..."),
-          onPressed: () {
-            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
-          }
-        );
+            child: Text("Connecting..."),
+            onPressed: () {
+              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+            });
         break;
       case BleScanState.PLEASE_OPEN_BLE:
         return Text(
