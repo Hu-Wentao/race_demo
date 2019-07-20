@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:race_demo/redux/redux.dart';
+import 'package:race_demo/redux/redux_app_action.dart';
 import 'package:race_demo/redux/redux_app_state.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
@@ -13,6 +14,7 @@ class StatusPage extends StatelessWidget {
   final String title;
 
   const StatusPage({Key key, this.title}) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,6 @@ class StatusPage extends StatelessWidget {
                     padLTRB: const [16, 8, 16, 0],
                     showDivider: false,
                   ),
-                  Text(appInfo),
                   _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
                   TextDivider(
                     "Position Information",
@@ -72,7 +73,7 @@ class StatusPage extends StatelessWidget {
           stream: bloc.outGetBtnState,
           initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
-            return _buildBtnBy(snapshot.data, bloc.inBleOperator);
+            return _buildBtnBy(snapshot.data, bloc.inBleOperator, context);
           },
         ),
       ),
@@ -123,7 +124,7 @@ class StatusPage extends StatelessWidget {
   }
 
 ////////////////////////////////////////////////////////////////////////////////
-  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator) {
+  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator, BuildContext context) {
     switch (info.state) {
       case BleScanState.SCANNING:
         return RaisedButton(
@@ -178,6 +179,8 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
+
+//        StoreProvider.of(context).state;
         return Text("${(info.data as BluetoothDevice).name}");
         break;
     }
