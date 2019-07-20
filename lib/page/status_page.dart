@@ -2,13 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:race_demo/redux/redux.dart';
-import 'package:race_demo/redux/redux_app_action.dart';
-import 'package:race_demo/redux/redux_app_state.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
+
 
 class StatusPage extends StatelessWidget {
   final String title;
@@ -18,45 +16,43 @@ class StatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final StatusPageBloc _bloc = BlocProvider.of<StatusPageBloc>(context);
-    return StoreConnector<ReduxAppState, String>(
-        converter: (store) => store.state.appInfo,
-        builder: (context, appInfo) {
-          return Scaffold(
-            appBar: AppBar(
-              title: Text(this.title),
+    // 从性能上考虑, 应该在此处进行 检测蓝牙状态, 检测是否正在扫描等...
+//      print('StatusPage.build 检查并打开蓝牙, 然后');
+//      _bloc.inBleOperator.add(OperateInfo(Operate.CHECK_OPEN_BLE, null));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(this.title),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(4, 4, 4, 48),
+        child: SingleChildScrollView(
+            child: Column(
+          children: <Widget>[
+            TextDivider(
+              "Device Status",
+              padLTRB: const [16, 8, 16, 0],
+              showDivider: false,
             ),
-            body: Padding(
-              padding: const EdgeInsets.fromLTRB(4, 4, 4, 48),
-              child: SingleChildScrollView(
-                  child: Column(
-                children: <Widget>[
-                  Text(appInfo),// todo del ...........................
-                  TextDivider(
-                    "Device Status",
-                    padLTRB: const [16, 8, 16, 0],
-                    showDivider: false,
-                  ),
-                  _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
-                  TextDivider(
-                    "Position Information",
-                    padLTRB: const [16, 8, 16, 0],
-                    showDivider: false,
-                  ),
-                  _buildInfoBlock(context, _buildPositionInformation(context)),
-                  TextDivider(
-                    "Position Confidence",
-                    padLTRB: const [16, 8, 16, 0],
-                    showDivider: false,
-                  ),
-                  _buildInfoBlock(context, _buildPositionConfidence(context)),
-                ],
-              )),
+            _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
+            TextDivider(
+              "Position Information",
+              padLTRB: const [16, 8, 16, 0],
+              showDivider: false,
             ),
-          );
-        });
+            _buildInfoBlock(context, _buildPositionInformation(context)),
+            TextDivider(
+              "Position Confidence",
+              padLTRB: const [16, 8, 16, 0],
+              showDivider: false,
+            ),
+            _buildInfoBlock(context, _buildPositionConfidence(context)),
+          ],
+        )),
+      ),
+    );
   }
 
-  // 对控件的包装
   _buildInfoBlock(BuildContext context, List<Widget> childrenList) {
     return RadiusContainer(
       child: Column(
@@ -73,7 +69,7 @@ class StatusPage extends StatelessWidget {
           stream: bloc.outGetBtnState,
           initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
-            return _buildBtnBy(snapshot.data, bloc.inBleOperator, context);
+            return _buildBtnBy(snapshot.data, bloc.inBleOperator);
           },
         ),
       ),
@@ -123,9 +119,7 @@ class StatusPage extends StatelessWidget {
     ];
   }
 
-////////////////////////////////////////////////////////////////////////////////
-  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator,
-      BuildContext context) {
+  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator) {
     switch (info.state) {
       case BleScanState.SCANNING:
         return RaisedButton(
@@ -137,17 +131,19 @@ class StatusPage extends StatelessWidget {
         );
       case BleScanState.STOP_SCAN:
         return RaisedButton(
-            child: Text("Tap to Scan"),
-            onPressed: () {
-              print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
-              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
-            });
+          child: Text("Tap to Scan"),
+          onPressed: () {
+            print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
+            inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
+          }
+        );
       case BleScanState.CONNECTING:
         return RaisedButton(
-            child: Text("Connecting..."),
-            onPressed: () {
-              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
-            });
+          child: Text("Connecting..."),
+          onPressed: () {
+            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+          }
+        );
         break;
       case BleScanState.PLEASE_OPEN_BLE:
         return Text(
@@ -171,7 +167,7 @@ class StatusPage extends StatelessWidget {
                   case "RaceDB_0011":
                   case "Race_0002":
                     print(
-                        'StatusPage._buildBtnBy 列表中包含: ${d.name} 已自动选择该设备 #### todo ');
+                        'StatusPage._buildBtnBy 发现列表找包含: ${d.name} 已自动选择该设备 #### todo ');
                     inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, d));
                     break;
                 }
@@ -180,9 +176,7 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        return FlatButton(
-            onPressed: ()=>StoreProvider.of(context).dispatch(ReduxAppAction(ActionType.changAppInfo, "this is new App info lala")), /// todo
-            child: Text("${(info.data as BluetoothDevice).name}"));
+        return Text("Connected: ${(info.data as BluetoothDevice).name}");
         break;
     }
   }
