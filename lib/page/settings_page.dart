@@ -78,7 +78,7 @@ class SettingsPage extends StatelessWidget {
             }
             return RaisedButton(
               child: Text("Check for updates"),
-              onPressed: ()=>_checkAndUpdateFirmware(snap.data),
+              onPressed: ()=>_checkAndUpdateFirmware(snap.data, settingsBloc),
             );
           }
         ),
