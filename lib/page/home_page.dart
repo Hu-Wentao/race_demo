@@ -40,8 +40,6 @@ class HomePage extends StatelessWidget {
                 ),
               );
               break;
-//            case 2:
-
           }
           return null;
         });

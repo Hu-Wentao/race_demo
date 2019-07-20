@@ -7,8 +7,6 @@ import 'package:redux/redux.dart';
 class StoreProvider<S> extends InheritedWidget {
   final Store<S> _store;
 
-  /// Create a [StoreProvider] by passing in the required [store] and [child]
-  /// parameters.
   const StoreProvider({
     Key key,
     @required Store<S> store,
@@ -21,14 +19,13 @@ class StoreProvider<S> extends InheritedWidget {
   static Store<S> of<S>(BuildContext context) {
     final type = _typeOf<StoreProvider<S>>();
     final provider =
-    context.inheritFromWidgetOfExactType(type) as StoreProvider<S>;
+        context.inheritFromWidgetOfExactType(type) as StoreProvider<S>;
 
     if (provider == null) throw StoreProviderError(type);
 
     return provider._store;
   }
 
-  // Workaround to capture generics
   static Type _typeOf<T>() => T;
 
   @override
@@ -37,21 +34,21 @@ class StoreProvider<S> extends InheritedWidget {
 }
 
 typedef ViewModelBuilder<ViewModel> = Widget Function(
-    BuildContext context,
-    ViewModel vm,
-    );
+  BuildContext context,
+  ViewModel vm,
+);
 
 typedef StoreConverter<S, ViewModel> = ViewModel Function(
-    Store<S> store,
-    );
+  Store<S> store,
+);
 
 typedef OnInitCallback<S> = void Function(
-    Store<S> store,
-    );
+  Store<S> store,
+);
 
 typedef OnDisposeCallback<S> = void Function(
-    Store<S> store,
-    );
+  Store<S> store,
+);
 
 typedef IgnoreChangeTest<S> = bool Function(S state);
 
@@ -243,8 +240,6 @@ class _StoreStreamListenerState<S, ViewModel>
 
     stream = _stream.map((_) => widget.converter(widget.store));
 
-    // Don't use `Stream.distinct` because it cannot capture the initial
-    // ViewModel produced by the `converter`.
     if (widget.distinct) {
       stream = stream.where((vm) {
         final isDistinct = vm != latestValue;
@@ -253,37 +248,34 @@ class _StoreStreamListenerState<S, ViewModel>
       });
     }
 
-    // After each ViewModel is emitted from the Stream, we update the
-    // latestValue. Important: This must be done after all other optional
-    // transformations, such as ignoreChange.
     stream =
         stream.transform(StreamTransformer.fromHandlers(handleData: (vm, sink) {
-          latestValue = vm;
+      latestValue = vm;
 
-          if (widget.onWillChange != null) {
-            widget.onWillChange(latestValue);
-          }
+      if (widget.onWillChange != null) {
+        widget.onWillChange(latestValue);
+      }
 
-          if (widget.onDidChange != null) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              widget.onDidChange(latestValue);
-            });
-          }
+      if (widget.onDidChange != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          widget.onDidChange(latestValue);
+        });
+      }
 
-          sink.add(vm);
-        }));
+      sink.add(vm);
+    }));
   }
 
   @override
   Widget build(BuildContext context) {
     return widget.rebuildOnChange
         ? StreamBuilder<ViewModel>(
-      stream: stream,
-      builder: (context, snapshot) => widget.builder(
-        context,
-        snapshot.hasData ? snapshot.data : latestValue,
-      ),
-    )
+            stream: stream,
+            builder: (context, snapshot) => widget.builder(
+              context,
+              snapshot.hasData ? snapshot.data : latestValue,
+            ),
+          )
         : widget.builder(context, latestValue);
   }
 }
@@ -291,22 +283,18 @@ class _StoreStreamListenerState<S, ViewModel>
 class StoreProviderError extends Error {
   Type type;
 
-  /// Creates a StoreProviderError
   StoreProviderError(this.type);
 
   @override
   String toString() {
-    return '''Error: No $type found. To fix, please try:
-          
-  * Wrapping your MaterialApp with the StoreProvider<State>, 
-  rather than an individual Route
-  * Providing full type information to your Store<State>, 
-  StoreProvider<State> and StoreConnector<State, ViewModel>
-  * Ensure you are using consistent and complete imports. 
-  E.g. always use `import 'package:my_app/app_state.dart';
-  
-If none of these solutions work, please file a bug at:
-https://github.com/brianegan/flutter_redux/issues/new
+    return '''
+    Error: No $type found. To fix, please try:
+       *使用StoreProvider<State>包装您的MaterialApp，
+        而不是单独的路由
+        
+        *向您的 Store<State> 提供完整的类型信息，
+        StoreProvider<State>和StoreConnector<State, ViewModel>
+        *确保使用一致和完整的导入。
       ''';
   }
 }

@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:race_demo/redux/redux.dart';
+import 'package:race_demo/redux/redux_app_state.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
-
-int tmpCount = 0; //todo del
 
 class StatusPage extends StatelessWidget {
   final String title;
@@ -17,42 +17,42 @@ class StatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final StatusPageBloc _bloc = BlocProvider.of<StatusPageBloc>(context);
-    // 从性能上考虑, 应该在此处进行 检测蓝牙状态, 检测是否正在扫描等...
-//      print('StatusPage.build 检查并打开蓝牙, 然后');
-//      _bloc.inBleOperator.add(OperateInfo(Operate.CHECK_OPEN_BLE, null));
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(this.title),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(4, 4, 4, 48),
-        child: SingleChildScrollView(
-            // todo 使用 StreamBuilder 构建刷新数据
-            child: Column(
-          children: <Widget>[
-            TextDivider(
-              "Device Status",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
+    return StoreConnector<ReduxAppState, String>(
+        converter: (store) => store.state.appInfo,
+        builder: (context, appInfo) {
+          return Scaffold(
+            appBar: AppBar(
+              title: Text(this.title),
             ),
-            _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
-            TextDivider(
-              "Position Information",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
+            body: Padding(
+              padding: const EdgeInsets.fromLTRB(4, 4, 4, 48),
+              child: SingleChildScrollView(
+                  child: Column(
+                children: <Widget>[
+                  TextDivider(
+                    "Device Status",
+                    padLTRB: const [16, 8, 16, 0],
+                    showDivider: false,
+                  ),
+                  Text(appInfo),
+                  _buildInfoBlock(context, _buildDeviceStatus(context, _bloc)),
+                  TextDivider(
+                    "Position Information",
+                    padLTRB: const [16, 8, 16, 0],
+                    showDivider: false,
+                  ),
+                  _buildInfoBlock(context, _buildPositionInformation(context)),
+                  TextDivider(
+                    "Position Confidence",
+                    padLTRB: const [16, 8, 16, 0],
+                    showDivider: false,
+                  ),
+                  _buildInfoBlock(context, _buildPositionConfidence(context)),
+                ],
+              )),
             ),
-            _buildInfoBlock(context, _buildPositionInformation(context)),
-            TextDivider(
-              "Position Confidence",
-              padLTRB: const [16, 8, 16, 0],
-              showDivider: false,
-            ),
-            _buildInfoBlock(context, _buildPositionConfidence(context)),
-          ],
-        )),
-      ),
-    );
+          );
+        });
   }
 
   // 对控件的包装

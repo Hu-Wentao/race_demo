@@ -7,28 +7,23 @@ import 'package:race_demo/redux/redux_app_reducer.dart';
 import 'page/home_page.dart';
 
 void main() {
-  final Store<ReduxAppState> store = Store<ReduxAppState>(
-      appReducer,
-      initialState: ReduxAppState.initState()
-  );
-  runApp(MaterialApp(
-    title: "Race demo",
-    theme: ThemeData(
-      primarySwatch: Colors.red,
-    ),
-    home: AppRedux(store),
-  ));
+  runApp(AppRedux());
 }
 
-class AppRedux extends StatelessWidget{
-  final store;
-  const AppRedux( this.store, {Key key,}) : super(key: key);
+class AppRedux extends StatelessWidget {
+  final Store<ReduxAppState> store =
+  Store<ReduxAppState>(appReducer, initialState: ReduxAppState.initState());
+
   @override
   Widget build(BuildContext context) {
     return StoreProvider(
-      store: store,
-      child: HomePage(),
-    );
+        store: store,
+        child: MaterialApp(
+          title: "Race demo",
+          theme: ThemeData(
+            primarySwatch: Colors.red,
+          ),
+          home: HomePage(),
+        ));
   }
-
 }
