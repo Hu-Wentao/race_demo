@@ -1,11 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
+import 'package:race_demo/bloc/home_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
-
-//import 'package:race_demo/redux/redux.dart';
-//import 'package:race_demo/redux/redux_app_state.dart';
 
 import 'settings_page.dart';
 import 'status_page.dart';
@@ -13,6 +11,7 @@ import 'status_page.dart';
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final _homeBloc = BlocProvider.of<HomeBloc>(context);
     return CupertinoTabScaffold(
         tabBar: CupertinoTabBar(
           items: [
@@ -28,6 +27,7 @@ class HomePage extends StatelessWidget {
               return BlocProvider<StatusPageBloc>(
                 bloc: StatusPageBloc(),
                 child: StatusPage(
+                  _homeBloc,
                   title: "Status",
                 ),
               );
@@ -36,6 +36,7 @@ class HomePage extends StatelessWidget {
               return BlocProvider<SettingsPageBloc>(
                 bloc: SettingsPageBloc(),
                 child: SettingsPage(
+                  _homeBloc,
                   title: "Settings",
                 ),
               );

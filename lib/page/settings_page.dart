@@ -8,15 +8,12 @@ import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
   final String title;
-  const SettingsPage({Key key, this.title}) : super(key: key);
+  final HomeBloc homeBloc;
+  const SettingsPage(this.homeBloc, {Key key, this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     final SettingsPageBloc _bloc = BlocProvider.of<SettingsPageBloc>(context);
-
-//    final _homeBloc = BlocProvider.of<HomeBloc>(context);
-//    print('SettingsPage.build 找到 homebloc: ${_homeBloc.info}');
-
     return Scaffold(
       appBar: AppBar(
         title: Text(this.title),
@@ -37,9 +34,9 @@ class SettingsPage extends StatelessWidget {
             ),
             _buildSetPositionStyle(context),
             TextDivider(
-              "About Device",
+              "About device",
             ),
-            _buildUpgradeFirmware(context, _bloc),
+            _buildUpgradeFirmware(context, homeBloc, _bloc),
           ],
         ),
       ),
@@ -64,7 +61,7 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
-  _buildUpgradeFirmware(BuildContext context, SettingsPageBloc bloc) {
+  _buildUpgradeFirmware(BuildContext context, HomeBloc bloc, SettingsPageBloc settingsBloc) {
 
     return RadiusContainer(
       child: ListTile(
@@ -90,8 +87,10 @@ class SettingsPage extends StatelessWidget {
     );
   }
   void _checkAndUpdateFirmware(BluetoothDevice device) {
+    print('SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name} ');
     // TODO 检查固件版本
     // 升级固件
+
 
   }
 }

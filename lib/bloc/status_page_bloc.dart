@@ -7,20 +7,9 @@ import 'base_bloc.dart';
 class StatusPageBloc extends BaseBloc {
   @override
   void dispose() {
-//    _dataController.close();
     _bleOperatorController.close();
     _btnDataController.close();
   }
-
-  // 每次新建实例的时候, [getDataCount] 都是0,
-  // 所以如果要判断是否是第一次触发, 就判断该变量是否为0
-
-// 声明广播, 接受用户操作  在构建页面时触发
-//  StreamController<List<ScanResult>> _dataController =
-//      new StreamController.broadcast();
-//  StreamSink<List<ScanResult>> get _inAddData => _dataController.sink;
-//  Stream<List<ScanResult>> get outGetData => _getStreamData();
-
   // 声明广播, 对widget开放,控制 连接蓝牙设备 的整个流程
   StreamController<BleOpInfo> _bleOperatorController =
       new StreamController.broadcast();

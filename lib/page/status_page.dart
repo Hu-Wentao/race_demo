@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:race_demo/bloc/home_bloc.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
@@ -9,8 +10,9 @@ import 'package:race_demo/bloc/base_bloc.dart';
 
 class StatusPage extends StatelessWidget {
   final String title;
+  final HomeBloc homeBloc;
 
-  const StatusPage({Key key, this.title}) : super(key: key);
+  const StatusPage(this.homeBloc, {Key key, this.title}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class StatusPage extends StatelessWidget {
   _buildDeviceStatus(BuildContext context, StatusPageBloc bloc) {
     return <Widget>[
       ListTile(
-        title: Text("Connecting Device"),
+        title: Text("Device"),
         trailing: StreamBuilder<BtnStreamOpInfo>(
           stream: bloc.outGetBtnState,
           initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
@@ -161,7 +163,9 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        return Text("Connected: ${(info.data as BluetoothDevice).name}");
+      // 发送给父类的bloc, 表示已连接到了设备
+        homeBloc.inAddConnectedDevice.add(info.data as BluetoothDevice);
+        return Text("${(info.data as BluetoothDevice).name}");
         break;
     }
   }
