@@ -70,7 +70,7 @@ class StatusPage extends StatelessWidget {
         title: Text("Connecting Device"),
         trailing: StreamBuilder<BtnStreamOpInfo>(
           stream: bloc.outGetBtnState,
-//          initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
+          initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
             return _buildBtnBy(snapshot.data, bloc.inBleOperator);
           },
