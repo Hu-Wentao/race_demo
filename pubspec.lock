@@ -58,9 +58,9 @@ packages:
   flutter_blue:
     dependency: "direct main"
     description:
-      name: flutter_blue
-      url: "https://pub.dartlang.org"
-    source: hosted
+      path: "plugs\\flutter_blue-0.6.0+1"
+      relative: true
+    source: path
     version: "0.6.0+1"
   flutter_test:
     dependency: "direct dev"

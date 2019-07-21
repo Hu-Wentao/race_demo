@@ -90,8 +90,38 @@ class SettingsPage extends StatelessWidget {
         ),
         StreamBuilder<UpdateProgressInfo>(
           stream: settingsBloc.outUpdateProgress,
-          initialData: UpdateProgressInfo(null, 0.0),
+          initialData: UpdateProgressInfo(null,totalProgress: 0.0, ),
+          builder: (context, snap) {
+            String updatePhaseMsg;
+            switch (snap.data.updatePhase) {
+              case UpdatePhase.DOWNLOAD_FIRM:
+                updatePhaseMsg = "Downloading firm...";
+                break;
+              case UpdatePhase.FIND_SERVICE:
+                updatePhaseMsg = "Finding Service...";
+                break;
+              case UpdatePhase.OPEN_CHARA:
+                updatePhaseMsg = "Open characteristic";
+                break;
+              case UpdatePhase.SEND_HEAD:
+                updatePhaseMsg = "Send head...";
+                break;
+              case UpdatePhase.SEND_FIRM:
+                updatePhaseMsg = "Updataing...";
+                break;
+              case UpdatePhase.RECEIVE_RESULT:
+                updatePhaseMsg = "Receive result...";
+                break;
+            }
 
+            return Column(
+              children: <Widget>[
+                ListTile(
+                  title: Text(updatePhaseMsg),
+                ),
+              ],
+            );
+          },
         )
       ],
     ));
@@ -103,5 +133,8 @@ class SettingsPage extends StatelessWidget {
         'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name} ');
     // TODO 检查固件版本
     // 升级固件
+    //
+    inAddUpdateProgress
+        .add(UpdateProgressInfo(UpdatePhase.FIND_SERVICE, bleDevice: device));
   }
 }
