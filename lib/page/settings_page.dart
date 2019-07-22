@@ -90,7 +90,10 @@ class SettingsPage extends StatelessWidget {
         ),
         StreamBuilder<UpdateProgressInfo>(
           stream: settingsBloc.outUpdateProgress,
-          initialData: UpdateProgressInfo(null,totalProgress: 0.0, ),
+          initialData: UpdateProgressInfo(
+            null,
+            totalProgress: 0.0,
+          ),
           builder: (context, snap) {
             String updatePhaseMsg;
             switch (snap.data.updatePhase) {
@@ -115,11 +118,14 @@ class SettingsPage extends StatelessWidget {
             }
 
             return Column(
-              children: <Widget>[
-                ListTile(
-                  title: Text(updatePhaseMsg),
-                ),
-              ],
+              children: updatePhaseMsg == null
+                  ? []
+                  : <Widget>[
+                      ListTile(
+                        title: Text("Updata Phrase"),
+                        trailing: Text(updatePhaseMsg),
+                      ),
+                    ],
             );
           },
         )
@@ -130,7 +136,7 @@ class SettingsPage extends StatelessWidget {
   void _checkAndUpdateFirmware(BluetoothDevice device,
       StreamSink<UpdateProgressInfo> inAddUpdateProgress) {
     print(
-        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name} ');
+        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
     // TODO 检查固件版本
     // 升级固件
     //
