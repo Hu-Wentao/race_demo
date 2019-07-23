@@ -88,25 +88,18 @@ class SettingsPageBloc extends BaseBloc {
           .where((s) =>
               ["abf0", "ffc0"].contains(s.uuid.toString().substring(4, 8)))
           .toList()[0];
-    }).then((service) {
+    }).then((service) async {
       // todo 这里可能出现问题. 比如返回的 service 为null
       print('SettingsPageBloc._oadFlow 找到服务: $service}');
       _inAddUpdateProgress.add(
           UpdateProgressInfo(UpdatePhase.FIND_SERVICE, phraseProgress: 0.2));
-      service.characteristics
-          .where((char) => ["abf1", "ffc1", "ffc2", "ffc4"]
-              .contains(char.uuid.toString().substring(4, 8)))
-          .forEach((char) {
-        print('SettingsPageBloc._oadFlow 开启: ${char.uuid}特征通知...');
-        Future.delayed(Duration(milliseconds: ((openCharDelay++) * 800)))
-            .then((_) => char.setNotifyValue(true));
-      });
+
+      await _openCharNotify(service);
       _inAddUpdateProgress
           .add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA, phraseProgress: 1.0));
       return service.characteristics;
     }).then((charList) {
-      print('SettingsPageBloc._oadFlow 开始初始化特征 $charList 的监听器');
-
+      print('SettingsPageBloc._oadFlow 开始初始化特征的监听器');
       charList.forEach((char) {
         // 监听特征
         char.value.listen((notify) {
@@ -117,12 +110,34 @@ class SettingsPageBloc extends BaseBloc {
               notifyValue: notify));
         });
       });
+      return charList;
+    }).then((charList) {
+      print('SettingsPageBloc._oadFlow 向特征发送头文件');
+      _inAddUpdateProgress
+          .add(UpdateProgressInfo(UpdatePhase.SEND_HEAD, phraseProgress: 1));
+      BluetoothCharacteristic ch = charList.where((char)=>char.uuid.toString().substring(4, 8) == "ffc1").toList()[0];
+      ch.write(binContent[0],withoutResponse: true);
+    });
+  }
+
+  _openCharNotify(BluetoothService service) {
+    service.characteristics
+        .where((char) => ["abf1", "ffc1", "ffc2", "ffc4"]
+            .contains(char.uuid.toString().substring(4, 8)))
+        .forEach((char) {
+      print('SettingsPageBloc._oadFlow 开启: ${char.uuid}特征通知...');
+      Future.delayed(Duration(milliseconds: ((openCharDelay++) * 1000)))
+          .then((_) => char.setNotifyValue(true));
     });
   }
 
   _oadNotify(NotifyInfo notify) {
     print(
         'SettingsPageBloc._oadNotify  监听到 ${notify.charKeyUuid} 的消息: ${notify.notifyValue}');
+    if (notify.notifyValue.length == 0) {
+      print('由于受到的消息长度为0, 所以忽略该消息');
+      return;
+    }
     switch (notify.charKeyUuid) {
       case "abf1":
       case "ffc1":
@@ -141,6 +156,7 @@ class SettingsPageBloc extends BaseBloc {
         }
         break;
       case "ffc4":
+//        print('SettingsPageBloc._oadNotify ');
         break;
     }
   }
@@ -153,18 +169,18 @@ class UpdateProgressInfo {
   double get totalProgress {
     switch (updatePhase) {
       case UpdatePhase.DOWNLOAD_FIRM:
-        return phraseProgress * 0.1;
+        return phraseProgress??0 * 0.1;
       case UpdatePhase.FIND_SERVICE:
-        return phraseProgress * 0.01 + 0.1;
+        return phraseProgress??0 * 0.01 + 0.1;
       case UpdatePhase.OPEN_CHARA:
-        return phraseProgress * 0.02 + 0.11;
+        return phraseProgress??0 * 0.02 + 0.11;
       case UpdatePhase.SEND_HEAD:
-        return phraseProgress * 0.01 + 0.13;
+        return phraseProgress??0 * 0.01 + 0.13;
         break;
       case UpdatePhase.SEND_FIRM:
-        return phraseProgress * 0.85 + 0.14;
+        return phraseProgress??0 * 0.85 + 0.14;
       case UpdatePhase.RECEIVE_RESULT:
-        return phraseProgress * 0.01 + 0.99;
+        return phraseProgress??0 * 0.01 + 0.99;
     }
     return 0;
   }
@@ -186,12 +202,11 @@ enum UpdatePhase {
 ////
 
 Future<File> _getFirmwareFromNet() async {
-
   const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
   Directory dir = await getApplicationDocumentsDirectory();
   print("打印dir： $dir");
 
-  File f = new File(dir.path+"/test.bin");
+  File f = new File(dir.path + "/test.bin");
   Response response = await Dio().download(downloadUrl, f.path);
   print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
 
@@ -210,7 +225,9 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
     if (i == 0) {
       binList.add(content.sublist(i, i + 16));
     } else {
-      binList.add(content.sublist(i, i + 128));
+      int index = i + 128;
+      if (index > content.length) index = content.length;
+      binList.add(content.sublist(i, index));
     }
   }
   return binList;

@@ -104,7 +104,7 @@ class SettingsPage extends StatelessWidget {
                 updatePhaseMsg = "Finding Service...";
                 break;
               case UpdatePhase.OPEN_CHARA:
-                updatePhaseMsg = "Open characteristic";
+                updatePhaseMsg = "Open characteristic notify...";
                 break;
               case UpdatePhase.SEND_HEAD:
                 updatePhaseMsg = "Send head...";
@@ -121,6 +121,17 @@ class SettingsPage extends StatelessWidget {
               children: updatePhaseMsg == null
                   ? []
                   : <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: <Widget>[
+                            LinearProgressIndicator(
+                              value: snap.data.totalProgress,
+                            ),
+                            Text("${snap.data.totalProgress*100}%")
+                          ],
+                        ),
+                      ),
                       ListTile(
                         title: Text("Updata Phrase"),
                         trailing: Text(updatePhaseMsg),
@@ -133,8 +144,8 @@ class SettingsPage extends StatelessWidget {
     ));
   }
 
-  void _checkAndUpdateFirmware(BluetoothDevice device,
-      StreamSink<BluetoothDevice> inAddOadCmd) {
+  void _checkAndUpdateFirmware(
+      BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
     print(
         'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
     // TODO 检查固件版本
