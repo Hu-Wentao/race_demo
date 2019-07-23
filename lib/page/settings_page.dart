@@ -84,7 +84,7 @@ class SettingsPage extends StatelessWidget {
                 return RaisedButton(
                   child: Text("Check for updates"),
                   onPressed: () => _checkAndUpdateFirmware(
-                      snap.data, settingsBloc.inAddUpdateProgress),
+                      snap.data, settingsBloc.inAddOadCmd),
                 );
               }),
         ),
@@ -92,7 +92,7 @@ class SettingsPage extends StatelessWidget {
           stream: settingsBloc.outUpdateProgress,
           initialData: UpdateProgressInfo(
             null,
-            totalProgress: 0.0,
+            phraseProgress: 0.0,
           ),
           builder: (context, snap) {
             String updatePhaseMsg;
@@ -134,13 +134,11 @@ class SettingsPage extends StatelessWidget {
   }
 
   void _checkAndUpdateFirmware(BluetoothDevice device,
-      StreamSink<UpdateProgressInfo> inAddUpdateProgress) {
+      StreamSink<BluetoothDevice> inAddOadCmd) {
     print(
         'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
     // TODO 检查固件版本
-    // 升级固件
-    //
-    inAddUpdateProgress
-        .add(UpdateProgressInfo(UpdatePhase.FIND_SERVICE, bleDevice: device));
+    // 升级固件流程
+    inAddOadCmd.add(device);
   }
 }

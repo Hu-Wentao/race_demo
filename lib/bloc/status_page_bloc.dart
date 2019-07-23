@@ -79,15 +79,8 @@ class StatusPageBloc extends BaseBloc {
   }
 
   _findInConnectedDevice() {
-    //TODO del
-    print(
-        'StatusPageBloc._findInConnectedDevice 进入 _FIND_IN_CONNECTED 方法, 正在检索 Race 开头的设备...');
     FlutterBlue.instance.connectedDevices
-        .then((list) => list.where((d) {
-              //todo del
-              print('StatusPageBloc._findInConnectedDevice 查找到设备: ${d.name}');
-              return d.name.startsWith("Race");
-            }).toList())
+        .then((list) => list.where((d)=>d.name.startsWith("Race")).toList())
         .then((rightList) {
       if (rightList.length == 0) {
         print(
@@ -115,24 +108,7 @@ class StatusPageBloc extends BaseBloc {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
-    FlutterBlue.instance.scanResults
-//        .where((resultList) {
-//      bool haveRightDevice = false;
-//      resultList.forEach((r) {
-//        switch (r.device.name) {
-//          case"RaceDB_0020":
-//          case"RaceDB_0021":
-//          case "RaceDB_0010":
-//          case "RaceDB_0011":
-//          case "Race_0002":
-//            print('StatusPageBloc._scanDevice 在扫描结果中找到 ${r.device.name}');
-//            haveRightDevice = true;
-//            break;
-//        }
-//      });
-//      return haveRightDevice;
-//    })
-        .listen((list) {
+    FlutterBlue.instance.scanResults.listen((list) {
       var rightList =
           list.where((d) => d.device.name.startsWith("Race")).toList();
       if (rightList.length == 0) {
@@ -140,7 +116,6 @@ class StatusPageBloc extends BaseBloc {
       } else if (rightList.length == 1) {
         print(
             'StatusPageBloc._scanDevice 发现了一个合适的设备: ${rightList[0].device.name}, 正在连接');
-//        rightList[0].device.connect();
         inBleOperator
             .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0].device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
@@ -148,7 +123,6 @@ class StatusPageBloc extends BaseBloc {
         print('StatusPageBloc._scanDevice 发现了多个合适设备: $rightList, 自动选择信号最强的设备');
         rightList = rightList.where((r) => r.rssi < 0).toList();
         rightList.sort(((a, b) => b.rssi - a.rssi));
-//        rightList.first.device.connect();
         inBleOperator
             .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first.device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
@@ -161,7 +135,6 @@ class StatusPageBloc extends BaseBloc {
   _connectDevice(BluetoothDevice device) {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
     device.connect();
-//    inBleOperator.add(BleOpInfo(Op, data))
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));
   }
@@ -184,6 +157,7 @@ enum Operate {
   _SCAN_DEVICE,
   // 连接设备, 该选项需要有参数
   CONNECT_DEVICE,
+
   STOP_SCANNING,
 }
 
