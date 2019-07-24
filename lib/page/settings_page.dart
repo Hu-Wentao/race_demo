@@ -97,7 +97,7 @@ class SettingsPage extends StatelessWidget {
           builder: (context, snap) {
             String updatePhaseMsg;
             switch (snap.data.updatePhase) {
-              case UpdatePhase.DOWNLOAD_FIRM:
+              case UpdatePhase.GET_FIRM:
                 updatePhaseMsg = "Downloading firm...";
                 break;
               case UpdatePhase.FIND_SERVICE:
