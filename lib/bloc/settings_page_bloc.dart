@@ -25,7 +25,7 @@ class SettingsPageBloc extends BaseBloc {
 
   // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出
   StreamController<BluetoothDevice> _transportDevice =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
   StreamSink<BluetoothDevice> get inAddConnectedDevice => _transportDevice.sink;
 
@@ -47,7 +47,7 @@ class SettingsPageBloc extends BaseBloc {
 
   // 设备升级 流, 只是用来展示 固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
-  StreamController.broadcast();
+      StreamController.broadcast();
 
   StreamSink<UpdateProgressInfo> get _inAddUpdateProgress =>
       _updateFirmware.sink;
@@ -70,7 +70,9 @@ class SettingsPageBloc extends BaseBloc {
 
     // 下载固件
     binContent = await _getByteList(_getFirmwareFromNet());
-    _inAddUpdateProgress.add((UpdateProgressInfo(UpdatePhase.GET_FIRM, )));
+    _inAddUpdateProgress.add((UpdateProgressInfo(
+      UpdatePhase.GET_FIRM,
+    )));
     // 修改MTU
     print('SettingsPageBloc._oadFlow 请求MTU 与 优先级...');
     bleDevice.requestMtu(512).then((_) {
@@ -85,7 +87,7 @@ class SettingsPageBloc extends BaseBloc {
       _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA));
       return serList
           .where((s) =>
-          ["abf0", "ffc0"].contains(s.uuid.toString().substring(4, 8)))
+              ["abf0", "ffc0"].contains(s.uuid.toString().substring(4, 8)))
           .toList()[0];
     }).then((service) async {
       // todo 这里可能出现问题. 比如返回的 service 为null
@@ -114,12 +116,11 @@ class SettingsPageBloc extends BaseBloc {
       print('SettingsPageBloc._oadFlow 向特征发送头文件: ${binContent[0]}');
       _inAddUpdateProgress
           .add(UpdateProgressInfo(UpdatePhase.SEND_HEAD, phraseProgress: 1));
-      BluetoothCharacteristic ch = charList.where((char) =>
-      char.uuid.toString()
-          .substring(4, 8) == "ffc1").toList()[0];
+      BluetoothCharacteristic ch = charList
+          .where((char) => char.uuid.toString().substring(4, 8) == "ffc1")
+          .toList()[0];
 
       print('SettingsPageBloc._oadFlow 最终选择的特征是: ${ch.uuid}');
-
 
       ch.write(binContent[0], withoutResponse: true);
     });
@@ -127,26 +128,25 @@ class SettingsPageBloc extends BaseBloc {
 
   _openCharNotify(BluetoothService service) async {
     service.characteristics
-        .where((char) =>
-        ["abf1", "ffc1", "ffc2", "ffc4"]
+        .where((char) => ["abf1", "ffc1", "ffc2", "ffc4"]
             .contains(char.uuid.toString().substring(4, 8)))
         .forEach((char) {
       print('SettingsPageBloc._oadFlow 开启: ${char.uuid}特征通知...');
       Future.delayed(Duration(milliseconds: ((openCharDelay++) * 600)))
           .then((_) {
-        _inAddUpdateProgress.add(
-            UpdateProgressInfo(UpdatePhase.OPEN_CHARA, phraseProgress: openCharDelay/3));
+        _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA,
+            phraseProgress: openCharDelay / 3));
         char.setNotifyValue(true);
       });
     });
 
-    return Future.delayed(const Duration(seconds: 2)).then((_)=>null);
+    return Future.delayed(const Duration(seconds: 2)).then((_) => null);
   }
 
   _oadNotify(NotifyInfo notify) {
-    print(
-        'SettingsPageBloc._oadNotify  监听到 ${notify.charKeyUuid} 的消息: ${notify
-            .notifyValue}');
+//    print(
+//        'SettingsPageBloc._oadNotify  监听到 ${notify.charKeyUuid} 的消息: ${notify
+//            .notifyValue}');
     if (notify.notifyValue.length == 0) {
       print('由于受到的消息长度为0, 所以忽略该消息');
       return;
@@ -156,16 +156,15 @@ class SettingsPageBloc extends BaseBloc {
       case "ffc1":
       case "ffc2":
         print("从 ffc2 中监听到信息： ${notify.notifyValue}");
-        if (notify.notifyValue.length != 2) {
-          print("从ffc2 中收到了 长度不等于二的value, 目前的处理方式是忽略这条信息");
-        } else {
-          List<int> value = notify.notifyValue;
-          int index = value[0] + value[1] * 256;
-          _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
-              phraseProgress: index / binContent.length));
-          // 将索引号加上
-          notify.char.write(value + binContent[index], withoutResponse: true);
-        }
+        if (notify.notifyValue.length != 2) break;
+//          print("从ffc2 中收到了 长度不等于二的value, 目前的处理方式是忽略这条信息");
+        List<int> value = notify.notifyValue;
+        int index = value[0] + value[1] * 256;
+        _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
+            phraseProgress: index / binContent.length));
+        // 将索引号加上
+        notify.char.write(value + binContent[index], withoutResponse: true);
+//        }
         break;
       case "ffc4":
 //        print('SettingsPageBloc._oadNotify ');
@@ -197,7 +196,8 @@ class UpdateProgressInfo {
     return 0;
   }
 
-  UpdateProgressInfo(this.updatePhase, {
+  UpdateProgressInfo(
+    this.updatePhase, {
     this.phraseProgress,
   });
 }
@@ -255,7 +255,6 @@ class NotifyInfo {
 
   @override
   toString() {
-    return "From: ${char.uuid
-        .toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
+    return "From: ${char.uuid.toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
   }
 }
