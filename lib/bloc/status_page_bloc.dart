@@ -80,7 +80,7 @@ class StatusPageBloc extends BaseBloc {
 
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
-    //todo modify
+    //todo modify.........................................VVV.VVV.VVV....
         .then((list) => list.where((d)=>d.name.startsWith("Race_")).toList())
         .then((rightList) {
       if (rightList.length == 0) {
@@ -92,9 +92,9 @@ class StatusPageBloc extends BaseBloc {
             'StatusPageBloc._findInConnectedDevice 发现已连接了 一个以Race开头的设备:${rightList[0].name} 激活 CONNECT_DEVICE');
         inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0]));
       } else {
+        // 提示用户手动选择连接的设备,
         print(
             'StatusPageBloc._findInConnectedDevice 发现已连接了 多个以Race开头的设备, 提示用户手动选择设备');
-        // 提示用户手动选择连接的设备,
         _inSetBtnState
             .add(BtnStreamOpInfo(BleScanState.PLEASE_SELECT_DEVICE, rightList));
       }

@@ -127,20 +127,17 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   _openCharNotify(BluetoothService service) async {
-    service.characteristics
+    var rightCharList = service.characteristics
         .where((char) => ["abf1", "ffc1", "ffc2", "ffc4"]
             .contains(char.uuid.toString().substring(4, 8)))
-        .forEach((char) {
-      print('SettingsPageBloc._oadFlow 开启: ${char.uuid}特征通知...');
-      Future.delayed(Duration(milliseconds: ((openCharDelay++) * 600)))
-          .then((_) {
-        _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA,
-            phraseProgress: openCharDelay / 3));
-        char.setNotifyValue(true);
-      });
-    });
+        .toList();
 
-    return Future.delayed(const Duration(seconds: 2)).then((_) => null);
+    for (int i = 0; i < rightCharList.length; i++) {
+      print('SettingsPageBloc._oadFlow 开启: ${rightCharList[i].uuid}特征通知...');
+      bool a = await rightCharList[i].setNotifyValue(true);
+      _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA,
+          phraseProgress: openCharDelay / rightCharList.length));
+    }
   }
 
   _oadNotify(NotifyInfo notify) {
@@ -157,17 +154,15 @@ class SettingsPageBloc extends BaseBloc {
       case "ffc2":
         print("从 ffc2 中监听到信息： ${notify.notifyValue}");
         if (notify.notifyValue.length != 2) break;
-//          print("从ffc2 中收到了 长度不等于二的value, 目前的处理方式是忽略这条信息");
         List<int> value = notify.notifyValue;
         int index = value[0] + value[1] * 256;
         _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
             phraseProgress: index / binContent.length));
         // 将索引号加上
         notify.char.write(value + binContent[index], withoutResponse: true);
-//        }
         break;
       case "ffc4":
-//        print('SettingsPageBloc._oadNotify ');
+        print('SettingsPageBloc._oadNotify 监听到ffc4: ${notify.notifyValue}');
         break;
     }
   }
@@ -180,22 +175,20 @@ class UpdateProgressInfo {
   double get totalProgress {
     switch (updatePhase) {
       case UpdatePhase.GET_FIRM:
-        return phraseProgress ?? 0 * 0.1;
+        return (phraseProgress ?? 0) * 0.1;
       case UpdatePhase.FIND_SERVICE:
-        return phraseProgress ?? 0 * 0.01 + 0.1;
+        return (phraseProgress ?? 0) * 0.01 + 0.1;
       case UpdatePhase.OPEN_CHARA:
-        return phraseProgress ?? 0 * 0.02 + 0.11;
+        return (phraseProgress ?? 0) * 0.02 + 0.11;
       case UpdatePhase.SEND_HEAD:
-        return phraseProgress ?? 0 * 0.01 + 0.13;
-        break;
+        return (phraseProgress ?? 0) * 0.01 + 0.13;
       case UpdatePhase.SEND_FIRM:
-        return phraseProgress ?? 0 * 0.85 + 0.14;
+        return (phraseProgress ?? 0) * 0.85 + 0.14;
       case UpdatePhase.RECEIVE_RESULT:
-        return phraseProgress ?? 0 * 0.01 + 0.99;
+        return (phraseProgress ?? 0) * 0.01 + 0.99;
     }
     return 0;
   }
-
   UpdateProgressInfo(
     this.updatePhase, {
     this.phraseProgress,
@@ -210,7 +203,6 @@ enum UpdatePhase {
   SEND_FIRM, // 85%
   RECEIVE_RESULT, // 1%
 }
-////
 
 Future<File> _getFirmwareFromNet() async {
   const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
@@ -234,9 +226,6 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
 
   // 第一包
   binList.add(content.sublist(0, 16));
-//   todo del
-//  binList.add([249, 42, 255, 255, 0, 0, 184, 48, 69, 69, 69, 69, 0, 0, 1, 255]);
-//  binList.add([6, 120, 255, 255, 0, 0, 180, 48, 69, 69, 69, 69, 0, 0, 1, 255]);
   // 后面的包
   for (int i = 16; i < content.length; i += sendLength) {
     int index = i + sendLength;
