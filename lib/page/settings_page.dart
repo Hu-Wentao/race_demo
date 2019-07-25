@@ -87,10 +87,13 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.GET_FIRM:
             updatePhaseMsg = "Downloading firm...";
             break;
+          case UpdatePhase.REQUEST_MTU_PRIORITY:
+            updatePhaseMsg = "Request MTU & Priority...";
+            break;
           case UpdatePhase.FIND_SERVICE:
             updatePhaseMsg = "Finding Service...";
             break;
-          case UpdatePhase.OPEN_CHARA:
+          case UpdatePhase.OPEN_AND_LISTEN_CHARA:
             updatePhaseMsg = "Open characteristic notify...";
             break;
           case UpdatePhase.SEND_HEAD:
@@ -102,6 +105,7 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.RECEIVE_RESULT:
             updatePhaseMsg = "Receive result...";
             break;
+
         }
 
         return NoneBorderColorExpansionTile(
