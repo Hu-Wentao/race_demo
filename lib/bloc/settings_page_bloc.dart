@@ -45,7 +45,7 @@ class SettingsPageBloc extends BaseBloc {
 
   Stream<NotifyInfo> get _outGetNotify => _notifyController.stream;
 
-  // 设备升级 流, 只是用来展示 固件升级的进度
+  // 设备升级流, 只是用来展示固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
       StreamController.broadcast();
 
@@ -97,7 +97,7 @@ class SettingsPageBloc extends BaseBloc {
 
       await _openCharNotify(service);
       _inAddUpdateProgress
-          .add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA, phraseProgress: 1.0));
+          .add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA, phraseProgress: 0));
       return service.characteristics;
     }).then((charList) {
       print('SettingsPageBloc._oadFlow 开始初始化特征的监听器');
@@ -133,8 +133,10 @@ class SettingsPageBloc extends BaseBloc {
         .toList();
 
     for (int i = 0; i < rightCharList.length; i++) {
-      print('SettingsPageBloc._oadFlow 开启: ${rightCharList[i].uuid}特征通知...');
-      bool a = await rightCharList[i].setNotifyValue(true);
+      print('SettingsPageBloc._oadFlow 开启: ${rightCharList[i].uuid} 特征通知...');
+      await rightCharList[i].setNotifyValue(true);
+      // todo del
+      print('SettingsPageBloc._openCharNotify 开启成功....................');
       _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.OPEN_CHARA,
           phraseProgress: openCharDelay / rightCharList.length));
     }
@@ -175,15 +177,15 @@ class UpdateProgressInfo {
   double get totalProgress {
     switch (updatePhase) {
       case UpdatePhase.GET_FIRM:
-        return (phraseProgress ?? 0) * 0.1;
+        return (phraseProgress ?? 0) * 0.05;
       case UpdatePhase.FIND_SERVICE:
-        return (phraseProgress ?? 0) * 0.01 + 0.1;
+        return (phraseProgress ?? 0) * 0.01 + 0.05;
       case UpdatePhase.OPEN_CHARA:
-        return (phraseProgress ?? 0) * 0.02 + 0.11;
+        return (phraseProgress ?? 0) * 0.02 + 0.06;
       case UpdatePhase.SEND_HEAD:
-        return (phraseProgress ?? 0) * 0.01 + 0.13;
+        return (phraseProgress ?? 0) * 0.01 + 0.08;
       case UpdatePhase.SEND_FIRM:
-        return (phraseProgress ?? 0) * 0.85 + 0.14;
+        return (phraseProgress ?? 0) * 0.9 + 0.09;
       case UpdatePhase.RECEIVE_RESULT:
         return (phraseProgress ?? 0) * 0.01 + 0.99;
     }
@@ -196,16 +198,16 @@ class UpdateProgressInfo {
 }
 
 enum UpdatePhase {
-  GET_FIRM, // 10%
+  GET_FIRM, // 5%
   FIND_SERVICE, // 1%
   OPEN_CHARA, // 2%
   SEND_HEAD, // 1%
-  SEND_FIRM, // 85%
+  SEND_FIRM, // 90%
   RECEIVE_RESULT, // 1%
 }
 
 Future<File> _getFirmwareFromNet() async {
-  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
+  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v02.bin";
   Directory dir = await getApplicationDocumentsDirectory();
 
   File f = new File(dir.path + "/firmware.bin");
@@ -222,7 +224,7 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<List<int>> binList = [];
 
   /// 发送数据的长度
-  const int sendLength = 16;
+  const int sendLength = 32;
 
   // 第一包
   binList.add(content.sublist(0, 16));

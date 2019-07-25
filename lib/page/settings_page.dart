@@ -28,19 +28,27 @@ class SettingsPage extends StatelessWidget {
             TextDivider(
               "Show speed in: ",
             ),
-            _buildSetSpeedUnit(context),
+            RadiusContainer(
+              child: _buildSetSpeedUnit(context),
+            ),
             TextDivider(
               "Show altitude in: ",
             ),
-            _buildSetAltitudeUnit(context),
+            RadiusContainer(
+              child: _buildSetAltitudeUnit(context),
+            ),
             TextDivider(
               "Display position as: ",
             ),
-            _buildSetPositionStyle(context),
+            RadiusContainer(
+              child: _buildSetPositionStyle(context),
+            ),
             TextDivider(
               "About device",
             ),
-            _buildUpgradeFirmware(context, homeBloc, _bloc),
+            RadiusContainer(
+              child: _buildUpgradeFirmware(context, homeBloc, _bloc),
+            ),
           ],
         ),
       ),
@@ -48,101 +56,97 @@ class SettingsPage extends StatelessWidget {
   }
 
   _buildSetSpeedUnit(BuildContext context) {
-    return RadiusContainer(
-      child: ListTile(title: Text("test")),
-    );
+    return ListTile(title: Text("test"));
   }
 
   _buildSetAltitudeUnit(BuildContext context) {
-    return RadiusContainer(
-      child: ListTile(title: Text("test")),
-    );
+    return ListTile(title: Text("test"));
   }
 
   _buildSetPositionStyle(BuildContext context) {
-    return RadiusContainer(
-      child: ListTile(title: Text("test")),
-    );
+    return ListTile(title: Text("test"));
   }
 
   _buildUpgradeFirmware(
       BuildContext context, HomeBloc homeBloc, SettingsPageBloc settingsBloc) {
-    return RadiusContainer(
-        child: Column(
-      children: <Widget>[
-        ListTile(
+    final greyTextStyle =
+        TextStyle(color: Theme.of(context).textTheme.caption.color);
+
+    return StreamBuilder<UpdateProgressInfo>(
+      stream: settingsBloc.outUpdateProgress,
+      initialData: UpdateProgressInfo(
+        null,
+        phraseProgress: 0.0,
+      ),
+      builder: (context, snap) {
+        String updatePhaseMsg = "Null";
+        switch (snap.data.updatePhase) {
+          case UpdatePhase.GET_FIRM:
+            updatePhaseMsg = "Downloading firm...";
+            break;
+          case UpdatePhase.FIND_SERVICE:
+            updatePhaseMsg = "Finding Service...";
+            break;
+          case UpdatePhase.OPEN_CHARA:
+            updatePhaseMsg = "Open characteristic notify...";
+            break;
+          case UpdatePhase.SEND_HEAD:
+            updatePhaseMsg = "Send head...";
+            break;
+          case UpdatePhase.SEND_FIRM:
+            updatePhaseMsg = "Sending Firmware...";
+            break;
+          case UpdatePhase.RECEIVE_RESULT:
+            updatePhaseMsg = "Receive result...";
+            break;
+        }
+
+        return NoneBorderColorExpansionTile(
           title: Text("Upgrade Firmware"),
           trailing: StreamBuilder<BluetoothDevice>(
               stream: homeBloc.outGetConnectedDevice,
-              initialData: null,
               builder: (context, snap) {
-                if (snap.data == null) {
-                  return RaisedButton(
-                    child: Text("Please Connect Device"),
-                    onPressed: null, // todo 点击之后就开始扫描并连接设备(去调用 Status那边的Bloc)
-                  );
-                }
                 return RaisedButton(
                   child: Text("Check for updates"),
-                  onPressed: () => _checkAndUpdateFirmware(
-                      snap.data, settingsBloc.inAddOadCmd),
+                  onPressed: () {
+                    _checkAndUpdateFirmware(
+                        snap.data, settingsBloc.inAddOadCmd);
+                  },
                 );
               }),
-        ),
-        StreamBuilder<UpdateProgressInfo>(
-          stream: settingsBloc.outUpdateProgress,
-          initialData: UpdateProgressInfo(
-            null,
-            phraseProgress: 0.0,
-          ),
-          builder: (context, snap) {
-            String updatePhaseMsg;
-            switch (snap.data.updatePhase) {
-              case UpdatePhase.GET_FIRM:
-                updatePhaseMsg = "Downloading firm...";
-                break;
-              case UpdatePhase.FIND_SERVICE:
-                updatePhaseMsg = "Finding Service...";
-                break;
-              case UpdatePhase.OPEN_CHARA:
-                updatePhaseMsg = "Open characteristic notify...";
-                break;
-              case UpdatePhase.SEND_HEAD:
-                updatePhaseMsg = "Send head...";
-                break;
-              case UpdatePhase.SEND_FIRM:
-                updatePhaseMsg = "Updataing...";
-                break;
-              case UpdatePhase.RECEIVE_RESULT:
-                updatePhaseMsg = "Receive result...";
-                break;
-            }
-
-            return Column(
-              children: updatePhaseMsg == null
-                  ? []
-                  : <Widget>[
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: <Widget>[
-                            LinearProgressIndicator(
-                              value: snap.data.totalProgress,
-                            ),
-                            Text("${snap.data.totalProgress*100}%")
-                          ],
-                        ),
-                      ),
-                      ListTile(
-                        title: Text("Updata Phrase"),
-                        trailing: Text(updatePhaseMsg),
-                      ),
-                    ],
-            );
-          },
-        )
-      ],
-    ));
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+//                  Text("Updata\nPhrase",textAlign: TextAlign.center, style: greyTextStyle),
+                  Text("Updata Phrase  ", style: greyTextStyle,),
+                  Text(
+                    updatePhaseMsg,
+                    style: greyTextStyle,
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: Text(
+                "Total\nProgress",
+                textAlign: TextAlign.center,
+                style: greyTextStyle,
+              ),
+              title: LinearProgressIndicator(
+                value: snap.data.totalProgress,
+              ),
+              trailing: Text(
+                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+                style: greyTextStyle,
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _checkAndUpdateFirmware(
