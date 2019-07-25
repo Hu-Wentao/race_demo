@@ -22,34 +22,37 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(this.title),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            TextDivider(
-              "Show speed in: ",
-            ),
-            RadiusContainer(
-              child: _buildSetSpeedUnit(context),
-            ),
-            TextDivider(
-              "Show altitude in: ",
-            ),
-            RadiusContainer(
-              child: _buildSetAltitudeUnit(context),
-            ),
-            TextDivider(
-              "Display position as: ",
-            ),
-            RadiusContainer(
-              child: _buildSetPositionStyle(context),
-            ),
-            TextDivider(
-              "About device",
-            ),
-            RadiusContainer(
-              child: _buildUpgradeFirmware(context, homeBloc, _bloc),
-            ),
-          ],
+      body: Padding(
+        padding: const EdgeInsets.fromLTRB(0, 0, 0, 48),
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              TextDivider(
+                "Show speed in: ",
+              ),
+              RadiusContainer(
+                child: _buildSetSpeedUnit(context),
+              ),
+              TextDivider(
+                "Show altitude in: ",
+              ),
+              RadiusContainer(
+                child: _buildSetAltitudeUnit(context),
+              ),
+              TextDivider(
+                "Display position as: ",
+              ),
+              RadiusContainer(
+                child: _buildSetPositionStyle(context),
+              ),
+              TextDivider(
+                "About device",
+              ),
+              RadiusContainer(
+                child: _buildUpgradeFirmware(context, homeBloc, _bloc),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -120,11 +123,11 @@ class SettingsPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-//                  Text("Updata\nPhrase",textAlign: TextAlign.center, style: greyTextStyle),
-                  Text("Updata Phrase  ", style: greyTextStyle,),
+                  Text("Update Phrase  ", style: greyTextStyle,softWrap: true,),
                   Text(
                     updatePhaseMsg,
                     style: greyTextStyle,
+                    softWrap: true,
                   ),
                 ],
               ),
