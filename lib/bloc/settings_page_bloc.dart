@@ -91,7 +91,9 @@ class SettingsPageBloc extends BaseBloc {
       final charKeyUuid = rightCharList[i].uuid.toString().substring(4, 8);
 
       print('SettingsPageBloc._oadFlow 开启: $charKeyUuid 特征通知...');
-      await rightCharList[i].setNotifyValue(true);
+
+//      await rightCharList[i].setNotifyValue(true);  // 本方法有问题, 目前使用延迟进行替代
+      Future.delayed(Duration(milliseconds: 800*i)).then((_)=>rightCharList[i].setNotifyValue(true));
 //          // todo 考虑在这里添加过滤, 将重复的信息过滤掉
       
       // todo 这里的 notify流 可以 整合到 UpdateCtrlCmd 中.................................., 
