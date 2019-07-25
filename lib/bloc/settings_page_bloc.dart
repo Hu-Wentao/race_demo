@@ -277,7 +277,8 @@ Future<File> _getFirmwareFromNet() async {
 //  File f = new File(dir.path + "/firmware.bin");
 //  Response response = await Dio().download(downloadUrl, f.path);
 //  print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
-  return new File(dir.path + "/firmware.bin");
+//  return new File(dir.path + "/firmware.bin");
+  return new File(dir.path + "/app_oad1.bin");
 }
 ///
 /// 将二进制文件转换成 二维列表
