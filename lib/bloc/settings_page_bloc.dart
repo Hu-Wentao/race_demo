@@ -92,7 +92,7 @@ class SettingsPageBloc extends BaseBloc {
 
       print('SettingsPageBloc._oadFlow 开启: $charKeyUuid 特征通知...');
 
-//      await rightCharList[i].setNotifyValue(true);  // 本方法有问题, 目前使用延迟进行替代
+//      await rightCharList[i].setNotifyValue(true);  // todo del.. 本方法有问题, 目前使用延迟进行替代
       Future.delayed(Duration(milliseconds: 800*i)).then((_)=>rightCharList[i].setNotifyValue(true));
 //          // todo 考虑在这里添加过滤, 将重复的信息过滤掉
       
@@ -109,6 +109,8 @@ class SettingsPageBloc extends BaseBloc {
           UpdatePhase.OPEN_AND_LISTEN_CHARA,
           phraseProgress: openCharDelay / rightCharList.length));
     }
+    // todo del..
+    await Future.delayed(const Duration(seconds: 3));
 
     // todo 待优化(优化本方法, 直接获取oadChar)
     return rightCharList
@@ -140,6 +142,8 @@ class SettingsPageBloc extends BaseBloc {
         break;
       case "ffc4":
         print('SettingsPageBloc._oadNotify 监听到ffc4: ${notify.notifyValue}');
+        //todo modify...
+          _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.RECEIVE_RESULT, phraseProgress: 1));
         break;
     }
   }
@@ -185,10 +189,10 @@ class SettingsPageBloc extends BaseBloc {
         print(
             'SettingsPageBloc._exeUpdateCmd 得到服务: ${updateCmd.oadService.uuid}');
         // todo 这里可能出现问题. 比如返回的 service 为null
-        BluetoothCharacteristic oadChar =
-            await _openAndListenCharNotify(updateCmd.oadService);
+//        BluetoothCharacteristic oadChar =
+//            await _openAndListenCharNotify(updateCmd.oadService);
         _inAddUpdateCmd
-            .add(UpdateCtrlCmd(UpdatePhase.SEND_HEAD, oadChar: oadChar));
+            .add(UpdateCtrlCmd(UpdatePhase.SEND_HEAD, oadChar: await _openAndListenCharNotify(updateCmd.oadService)));
         break;
       case UpdatePhase.SEND_HEAD:
         _inAddUpdateProgress
@@ -264,9 +268,10 @@ enum UpdatePhase {
 Future<File> _getFirmwareFromNet() async {
   const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
   Directory dir = await getApplicationDocumentsDirectory();
-  File f = new File(dir.path + "/firmware.bin");
-  Response response = await Dio().download(downloadUrl, f.path);
-  print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
+
+//  File f = new File(dir.path + "/firmware.bin");
+//  Response response = await Dio().download(downloadUrl, f.path);
+//  print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
   return new File(dir.path + "/firmware.bin");
 }
 ///
