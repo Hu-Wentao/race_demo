@@ -110,13 +110,18 @@ class SettingsPageBloc extends BaseBloc {
           phraseProgress: openCharDelay / rightCharList.length));
     }
     // todo del..
-    await Future.delayed(const Duration(seconds: 3));
+    return await Future.delayed(const Duration(seconds: 3)).then((_){
+      return rightCharList
+          .where((char) =>
+          ["abf1", "ffc1"].contains(char.uuid.toString().substring(4, 8)))
+          .toList()[0];
+    });
 
     // todo 待优化(优化本方法, 直接获取oadChar)
-    return rightCharList
-        .where((char) =>
-            ["abf1", "ffc1"].contains(char.uuid.toString().substring(4, 8)))
-        .toList()[0];
+//    return rightCharList
+//        .where((char) =>
+//            ["abf1", "ffc1"].contains(char.uuid.toString().substring(4, 8)))
+//        .toList()[0];
   }
 
   _oadNotify(NotifyInfo notify) {
