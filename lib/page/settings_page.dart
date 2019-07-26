@@ -93,14 +93,11 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.REQUEST_MTU_PRIORITY:
             updatePhaseMsg = "Request MTU & Priority...";
             break;
-          case UpdatePhase.FIND_SERVICE:
-            updatePhaseMsg = "Finding Service...";
+//          case UpdatePhase.FIND_SERVICE:
+//            updatePhaseMsg = "Finding Service...";
             break;
-          case UpdatePhase.LISTEN_CHARA:
+          case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
             updatePhaseMsg = "Open characteristic notify...";
-            break;
-          case UpdatePhase.SEND_HEAD:
-            updatePhaseMsg = "Send head...";
             break;
           case UpdatePhase.SEND_FIRM:
             updatePhaseMsg = "Sending Firmware...";

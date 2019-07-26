@@ -14,6 +14,7 @@ class SettingsPageBloc extends BaseBloc {
   RaceDevice currentRaceDevice;
 
   bool isUpdating = false;
+
 //  BluetoothDevice bleDevice;
   List<List<int>> binContent;
   int openCharDelay = 0;
@@ -27,7 +28,7 @@ class SettingsPageBloc extends BaseBloc {
     _updateControl.close();
   }
 
-  // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出
+  // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用redux取代
   StreamController<BluetoothDevice> _transportDevice =
       StreamController.broadcast();
 
@@ -74,63 +75,17 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   Future _oadFlow(BluetoothDevice device) async {
-    if(isUpdating){
+    if (isUpdating) {
       print('SettingsPageBloc._oadFlow 检测到当前设备正在更新, 请勿重复发起更新....');
       return;
     }
     isUpdating = true;
 
-//    if (bleDevice != null) {
-//      print('SettingsPageBloc._oadFlow 本方法被再次激活, 已自动屏蔽...');
-//      return;
-//    }
-    currentRaceDevice = RaceDevice.cc2640(device);
+    currentRaceDevice = DeviceCc2640(device);
 
     _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.GET_FIRM));
   }
 
-  Future<BluetoothCharacteristic> _openAndListenCharNotify(
-      BluetoothService service) async {
-    var rightCharList = service.characteristics
-        .where((char) => ["abf1", "ffc1", "ffc2", "ffc4"]
-            .contains(char.uuid.toString().substring(4, 8)))
-        .toList();
-
-    for (int i = 0; i < rightCharList.length; i++) {
-      final charKeyUuid = rightCharList[i].uuid.toString().substring(4, 8);
-
-      print('SettingsPageBloc._oadFlow 开启: $charKeyUuid 特征通知...');
-
-//      await rightCharList[i].setNotifyValue(true);
-      Future.delayed(Duration(milliseconds: 800*i)).then((_)=>rightCharList[i].setNotifyValue(true));
-
-      // todo 这里的 notify流 可以 整合到 UpdateCtrlCmd 中..................................,
-      rightCharList[i].value.listen((notifyVal) {
-        _inAddNotify.add(NotifyInfo(
-            char: rightCharList[i],
-            charKeyUuid: charKeyUuid,
-            notifyValue: notifyVal));
-      });
-      // todo del
-      print('SettingsPageBloc._openCharNotify 开启成功 ');
-      _inShowUpdateProgress.add(UpdateProgressInfo(
-          UpdatePhase.LISTEN_CHARA,
-          phraseProgress: openCharDelay / rightCharList.length));
-    }
-//    // todo del..
-    return await Future.delayed(const Duration(seconds: 3)).then((_){
-      return rightCharList
-          .where((char) =>
-          ["abf1", "ffc1"].contains(char.uuid.toString().substring(4, 8)))
-          .toList()[0];
-    });
-
-    // todo 待优化(优化本方法, 直接获取oadChar)
-//    return rightCharList
-//        .where((char) =>
-//            ["abf1", "ffc1"].contains(char.uuid.toString().substring(4, 8)))
-//        .toList()[0];
-  }
 
   _oadNotify(NotifyInfo notify) {
 //    print(
@@ -151,7 +106,8 @@ class SettingsPageBloc extends BaseBloc {
         _inShowUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
             phraseProgress: index / binContent.length));
 
-        print('SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
+        print(
+            'SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
         // 将索引号加上
         notify.char.write(value + binContent[index], withoutResponse: true);
         break;
@@ -169,23 +125,25 @@ class SettingsPageBloc extends BaseBloc {
     switch (updateCmd.updatePhase) {
       case UpdatePhase.GET_FIRM:
         binContent = await _getByteList(_getFirmwareFromNet());
-          _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
+        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
         break;
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
+      /////////////////////////////////////////////////////////////////////////////////////////////
       case UpdatePhase.REQUEST_MTU_PRIORITY:
-        currentRaceDevice.requestMtuAndPriority(mtu: 128, priority: ConnectionPriority.high);
-        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA));
+        currentRaceDevice.requestMtuAndPriority(
+            mtu: 128, priority: ConnectionPriority.high);
+        _inAddUpdateCmd
+            .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
-      case UpdatePhase.LISTEN_CHARA:
-        [DeviceCc2640.oadServiceUuid, ]
-//        currentRaceDevice.charMap
-        break;
-        ////////////////////////////////////////////////////////////////////////////////////////
-      case UpdatePhase.SEND_HEAD:
-        print(
-            'SettingsPageBloc._exeUpdateCmd 向特征 ${updateCmd.oadChar} 发送头文件: ${binContent[0]}');
-        updateCmd.oadChar.write(binContent[0], withoutResponse: true);
+      case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
+        currentRaceDevice.openAndListenCharNotify(_inAddNotify, [
+          DeviceCc2640.identifyCharUuid,
+          DeviceCc2640.blockCharUuid,
+          DeviceCc2640.statusCharUuid
+        ]);
+
+        print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0]}');
+        (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
+            .write(binContent[0], withoutResponse: true);
         break;
       case UpdatePhase.SEND_FIRM:
         // TODO: Handle this case.
@@ -218,15 +176,11 @@ class UpdateProgressInfo {
   double get totalProgress {
     switch (updatePhase) {
       case UpdatePhase.GET_FIRM:
-        return phraseProgress * 0.04;
+        return phraseProgress * 0.05;
       case UpdatePhase.REQUEST_MTU_PRIORITY:
         return phraseProgress * 0.01 + 0.04;
-      case UpdatePhase.FIND_SERVICE:
-        return phraseProgress * 0.01 + 0.05;
-      case UpdatePhase.LISTEN_CHARA:
-        return phraseProgress * 0.02 + 0.06;
-      case UpdatePhase.SEND_HEAD:
-        return phraseProgress * 0.01 + 0.08;
+      case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
+        return phraseProgress * 0.03 + 0.06;
       case UpdatePhase.SEND_FIRM:
         return phraseProgress * 0.9 + 0.09;
       case UpdatePhase.RECEIVE_RESULT:
@@ -242,11 +196,9 @@ class UpdateProgressInfo {
 }
 
 enum UpdatePhase {
-  GET_FIRM, // 4%
-//  FIND_SERVICE, // 1%
+  GET_FIRM, // 5%
   REQUEST_MTU_PRIORITY, // 1%
-  LISTEN_CHARA, // 2%
-  SEND_HEAD, // 1%
+  LISTEN_CHARA_AND_SEND_HEAD, // 3%
   SEND_FIRM, // 90%
   RECEIVE_RESULT, // 1%
 }
@@ -285,17 +237,4 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
     binList.add(content.sublist(i, index));
   }
   return binList;
-}
-
-class NotifyInfo {
-  String charKeyUuid;
-  List<int> notifyValue;
-  BluetoothCharacteristic char;
-
-  NotifyInfo({this.char, this.charKeyUuid, this.notifyValue});
-
-  @override
-  toString() {
-    return "From: ${char.uuid.toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
-  }
 }
