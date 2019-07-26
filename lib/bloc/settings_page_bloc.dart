@@ -13,7 +13,8 @@ import 'base_bloc.dart';
 class SettingsPageBloc extends BaseBloc {
   RaceDevice currentRaceDevice;
 
-  BluetoothDevice bleDevice;
+  bool isUpdating = false;
+//  BluetoothDevice bleDevice;
   List<List<int>> binContent;
   int openCharDelay = 0;
 
@@ -73,13 +74,18 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   Future _oadFlow(BluetoothDevice device) async {
-    if (bleDevice != null) {
-      print('SettingsPageBloc._oadFlow 本方法被再次激活, 已自动屏蔽...');
+    if(isUpdating){
+      print('SettingsPageBloc._oadFlow 检测到当前设备正在更新, 请勿重复发起更新....');
       return;
     }
+    isUpdating = true;
+
+//    if (bleDevice != null) {
+//      print('SettingsPageBloc._oadFlow 本方法被再次激活, 已自动屏蔽...');
+//      return;
+//    }
     currentRaceDevice = RaceDevice.cc2640(device);
 
-    bleDevice = device;
     _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.GET_FIRM));
   }
 
@@ -108,7 +114,7 @@ class SettingsPageBloc extends BaseBloc {
       // todo del
       print('SettingsPageBloc._openCharNotify 开启成功 ');
       _inShowUpdateProgress.add(UpdateProgressInfo(
-          UpdatePhase.OPEN_AND_LISTEN_CHARA,
+          UpdatePhase.LISTEN_CHARA,
           phraseProgress: openCharDelay / rightCharList.length));
     }
 //    // todo del..
@@ -163,39 +169,18 @@ class SettingsPageBloc extends BaseBloc {
     switch (updateCmd.updatePhase) {
       case UpdatePhase.GET_FIRM:
         binContent = await _getByteList(_getFirmwareFromNet());
-        if (Platform.isAndroid) {
           _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
-        } else {
-          _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.FIND_SERVICE));
-        }
         break;
 
     /////////////////////////////////////////////////////////////////////////////////////////////
-
       case UpdatePhase.REQUEST_MTU_PRIORITY:
-        bleDevice.requestMtu(512).then((_) =>
-            bleDevice.requestConnectionPriority(ConnectionPriority.high));
-        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.FIND_SERVICE));
+        currentRaceDevice.requestMtuAndPriority(mtu: 128, priority: ConnectionPriority.high);
+        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA));
         break;
-      case UpdatePhase.FIND_SERVICE:
-        BluetoothService oadSer = await currentRaceDevice.oadService;
-
-        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.OPEN_AND_LISTEN_CHARA,
-            oadService: oadSer));
+      case UpdatePhase.LISTEN_CHARA:
+        [DeviceCc2640.oadServiceUuid, ]
+//        currentRaceDevice.charMap
         break;
-      case UpdatePhase.OPEN_AND_LISTEN_CHARA:
-        print(
-            'SettingsPageBloc._exeUpdateCmd 得到服务: ${updateCmd.oadService.uuid}');
-        // todo 这里可能出现问题. 比如返回的 service 为null
-        BluetoothCharacteristic oadChar =
-            await _openAndListenCharNotify(updateCmd.oadService);
-
-        assert(oadChar != null);
-
-        _inAddUpdateCmd
-            .add(UpdateCtrlCmd(UpdatePhase.SEND_HEAD, oadChar: oadChar));
-        break;
-
         ////////////////////////////////////////////////////////////////////////////////////////
       case UpdatePhase.SEND_HEAD:
         print(
@@ -238,7 +223,7 @@ class UpdateProgressInfo {
         return phraseProgress * 0.01 + 0.04;
       case UpdatePhase.FIND_SERVICE:
         return phraseProgress * 0.01 + 0.05;
-      case UpdatePhase.OPEN_AND_LISTEN_CHARA:
+      case UpdatePhase.LISTEN_CHARA:
         return phraseProgress * 0.02 + 0.06;
       case UpdatePhase.SEND_HEAD:
         return phraseProgress * 0.01 + 0.08;
@@ -258,9 +243,9 @@ class UpdateProgressInfo {
 
 enum UpdatePhase {
   GET_FIRM, // 4%
-  FIND_SERVICE, // 1%
+//  FIND_SERVICE, // 1%
   REQUEST_MTU_PRIORITY, // 1%
-  OPEN_AND_LISTEN_CHARA, // 2%
+  LISTEN_CHARA, // 2%
   SEND_HEAD, // 1%
   SEND_FIRM, // 90%
   RECEIVE_RESULT, // 1%

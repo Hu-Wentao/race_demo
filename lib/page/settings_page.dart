@@ -96,7 +96,7 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.FIND_SERVICE:
             updatePhaseMsg = "Finding Service...";
             break;
-          case UpdatePhase.OPEN_AND_LISTEN_CHARA:
+          case UpdatePhase.LISTEN_CHARA:
             updatePhaseMsg = "Open characteristic notify...";
             break;
           case UpdatePhase.SEND_HEAD:
