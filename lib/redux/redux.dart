@@ -1,3 +1,5 @@
+// Copyright 2019/7/26, Hu-Wentao. All rights reserved.
+// Email: hu.wentao@outlook.com
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';

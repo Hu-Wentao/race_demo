@@ -1,6 +1,9 @@
+// Copyright 2019/7/26, Hu-Wentao. All rights reserved.
+// Email: hu.wentao@outlook.com
 import 'dart:async';
 
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:race_demo/util/util.dart';
 
 import 'base_bloc.dart';
 
@@ -54,14 +57,7 @@ class StatusPageBloc extends BaseBloc {
         break;
     }
 
-    // 向流中输入
-//    _inAddData.addStream();
   }
-
-  // 获取数据输出流, 提供给StreamBuilder
-//  _getStreamData() {
-//    return _dataController.stream.where();
-//  }
 
   // 检测蓝牙是否打开
   _checkAndOpenBle() {
@@ -72,7 +68,7 @@ class StatusPageBloc extends BaseBloc {
         return true;
       } else {
         print('StatusPageBloc._onGetAction 蓝牙未开启 或 处于其他状态 todo #############');
-        // todo 使用 bluetooth_serial 库 开启蓝牙, 或者自己写一个 MethodChannel
+        BleUtil.openBluetooth();
         return false;
       }
     });
@@ -89,12 +85,12 @@ class StatusPageBloc extends BaseBloc {
         inBleOperator.add(BleOpInfo(Operate._SCAN_DEVICE, null));
       } else if (rightList.length == 1) {
         print(
-            'StatusPageBloc._findInConnectedDevice 发现已连接了 一个以Race开头的设备:${rightList[0].name} 激活 CONNECT_DEVICE');
+            'StatusPageBloc._findInConnectedDevice 发现已连接了 一个以Race开头的设备:${rightList[0].name}激活 CONNECT_DEVICE');
         inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0]));
       } else {
         // 提示用户手动选择连接的设备,
         print(
-            'StatusPageBloc._findInConnectedDevice 发现已连接了 多个以Race开头的设备, 提示用户手动选择设备');
+            'StatusPageBloc._findInConnectedDevice 发现已连接了 多个以Race 开头的设备, 提示用户手动选择设备');
         _inSetBtnState
             .add(BtnStreamOpInfo(BleScanState.PLEASE_SELECT_DEVICE, rightList));
       }

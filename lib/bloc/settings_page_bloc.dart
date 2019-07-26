@@ -1,6 +1,5 @@
-//import 'dart:async';
-//import 'package:flutter_blue/flutter_blue.dart';
-
+// Copyright 2019/7/26, Hu-Wentao. All rights reserved.
+// Email: hu.wentao@outlook.com
 import 'dart:async';
 import 'dart:io';
 
@@ -8,9 +7,12 @@ import 'package:dio/dio.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../race_device.dart';
 import 'base_bloc.dart';
 
 class SettingsPageBloc extends BaseBloc {
+  RaceDevice currentRaceDevice;
+
   BluetoothDevice bleDevice;
   List<List<int>> binContent;
   int openCharDelay = 0;
@@ -50,7 +52,7 @@ class SettingsPageBloc extends BaseBloc {
   StreamController<UpdateProgressInfo> _updateFirmware =
       StreamController.broadcast();
 
-  StreamSink<UpdateProgressInfo> get _inAddUpdateProgress =>
+  StreamSink<UpdateProgressInfo> get _inShowUpdateProgress =>
       _updateFirmware.sink;
 
   Stream<UpdateProgressInfo> get outUpdateProgress => _updateFirmware.stream;
@@ -63,8 +65,7 @@ class SettingsPageBloc extends BaseBloc {
   Stream<UpdateCtrlCmd> get _outGetUpdateCmd => _updateControl.stream;
 
   SettingsPageBloc() {
-    // todo 只获取一次设备, 可能出现bug (点击按钮触发)
-    _outOadCmd.take(1).listen((device) => _oadFlow(device));
+    _outOadCmd.listen((device) => _oadFlow(device));
     //
     _outGetNotify.listen((notify) => _oadNotify(notify));
     //
@@ -76,6 +77,8 @@ class SettingsPageBloc extends BaseBloc {
       print('SettingsPageBloc._oadFlow 本方法被再次激活, 已自动屏蔽...');
       return;
     }
+    currentRaceDevice = RaceDevice.cc2640(device);
+
     bleDevice = device;
     _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.GET_FIRM));
   }
@@ -92,11 +95,10 @@ class SettingsPageBloc extends BaseBloc {
 
       print('SettingsPageBloc._oadFlow 开启: $charKeyUuid 特征通知...');
 
-//      await rightCharList[i].setNotifyValue(true);  // todo del.. 本方法有问题, 目前使用延迟进行替代
+//      await rightCharList[i].setNotifyValue(true);
       Future.delayed(Duration(milliseconds: 800*i)).then((_)=>rightCharList[i].setNotifyValue(true));
-//          // todo 考虑在这里添加过滤, 将重复的信息过滤掉
-      
-      // todo 这里的 notify流 可以 整合到 UpdateCtrlCmd 中.................................., 
+
+      // todo 这里的 notify流 可以 整合到 UpdateCtrlCmd 中..................................,
       rightCharList[i].value.listen((notifyVal) {
         _inAddNotify.add(NotifyInfo(
             char: rightCharList[i],
@@ -105,11 +107,11 @@ class SettingsPageBloc extends BaseBloc {
       });
       // todo del
       print('SettingsPageBloc._openCharNotify 开启成功 ');
-      _inAddUpdateProgress.add(UpdateProgressInfo(
+      _inShowUpdateProgress.add(UpdateProgressInfo(
           UpdatePhase.OPEN_AND_LISTEN_CHARA,
           phraseProgress: openCharDelay / rightCharList.length));
     }
-    // todo del..
+//    // todo del..
     return await Future.delayed(const Duration(seconds: 3)).then((_){
       return rightCharList
           .where((char) =>
@@ -140,74 +142,68 @@ class SettingsPageBloc extends BaseBloc {
         if (notify.notifyValue.length != 2) break;
         List<int> value = notify.notifyValue;
         int index = value[0] + value[1] * 256;
-        _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
+        _inShowUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
             phraseProgress: index / binContent.length));
+
+        print('SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
         // 将索引号加上
         notify.char.write(value + binContent[index], withoutResponse: true);
         break;
       case "ffc4":
         print('SettingsPageBloc._oadNotify 监听到ffc4: ${notify.notifyValue}');
         //todo modify...
-          _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.RECEIVE_RESULT, phraseProgress: 1));
+        _inShowUpdateProgress.add(
+            UpdateProgressInfo(UpdatePhase.RECEIVE_RESULT, phraseProgress: 1));
         break;
     }
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
+    _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
     switch (updateCmd.updatePhase) {
       case UpdatePhase.GET_FIRM:
-        _inAddUpdateProgress.add((UpdateProgressInfo(
-          UpdatePhase.GET_FIRM,
-          )));
-        // todo 判断固件是否需要下载
         binContent = await _getByteList(_getFirmwareFromNet());
-        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
-        break;
-      case UpdatePhase.REQUEST_MTU_PRIORITY:
-        _inAddUpdateProgress.add(UpdateProgressInfo(
-            UpdatePhase.REQUEST_MTU_PRIORITY,
-            ));
         if (Platform.isAndroid) {
-          print('SettingsPageBloc._oadFlow 请求MTU 与 优先级...');
-          bleDevice.requestMtu(512).then((_) =>
-              bleDevice.requestConnectionPriority(ConnectionPriority.high)
-          );
+          _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
+        } else {
+          _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.FIND_SERVICE));
         }
+        break;
+
+    /////////////////////////////////////////////////////////////////////////////////////////////
+
+      case UpdatePhase.REQUEST_MTU_PRIORITY:
+        bleDevice.requestMtu(512).then((_) =>
+            bleDevice.requestConnectionPriority(ConnectionPriority.high));
         _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.FIND_SERVICE));
         break;
       case UpdatePhase.FIND_SERVICE:
-        _inAddUpdateProgress.add(
-            UpdateProgressInfo((UpdatePhase.FIND_SERVICE),));
-        print('SettingsPageBloc._oadFlow 开始寻找服务...');
+        BluetoothService oadSer = await currentRaceDevice.oadService;
 
-        // todo 第一次返回的不一定是所有的
-        BluetoothService oadSer = (await bleDevice.discoverServices())
-            .where((s) =>
-                ["abf0", "ffc0"].contains(s.uuid.toString().substring(4, 8)))
-            .toList()[0];
         _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.OPEN_AND_LISTEN_CHARA,
             oadService: oadSer));
         break;
       case UpdatePhase.OPEN_AND_LISTEN_CHARA:
-        _inAddUpdateProgress.add(UpdateProgressInfo(
-            UpdatePhase.OPEN_AND_LISTEN_CHARA));
         print(
             'SettingsPageBloc._exeUpdateCmd 得到服务: ${updateCmd.oadService.uuid}');
         // todo 这里可能出现问题. 比如返回的 service 为null
-//        BluetoothCharacteristic oadChar =
-//            await _openAndListenCharNotify(updateCmd.oadService);
+        BluetoothCharacteristic oadChar =
+            await _openAndListenCharNotify(updateCmd.oadService);
+
+        assert(oadChar != null);
+
         _inAddUpdateCmd
-            .add(UpdateCtrlCmd(UpdatePhase.SEND_HEAD, oadChar: await _openAndListenCharNotify(updateCmd.oadService)));
+            .add(UpdateCtrlCmd(UpdatePhase.SEND_HEAD, oadChar: oadChar));
         break;
+
+        ////////////////////////////////////////////////////////////////////////////////////////
       case UpdatePhase.SEND_HEAD:
-        _inAddUpdateProgress
-            .add(UpdateProgressInfo(UpdatePhase.SEND_HEAD,));
         print(
             'SettingsPageBloc._exeUpdateCmd 向特征 ${updateCmd.oadChar} 发送头文件: ${binContent[0]}');
         updateCmd.oadChar.write(binContent[0], withoutResponse: true);
         break;
       case UpdatePhase.SEND_FIRM:
-        _inAddUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,));
+        // TODO: Handle this case.
         break;
       case UpdatePhase.RECEIVE_RESULT:
         // TODO: Handle this case.
@@ -271,27 +267,34 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
-  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
+//  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
+//  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/app_oad1.bin";
+//  const String downloadUrl = "https://send.firefox.com/download/7bac0850b24cc6e6";  // 128位的 oad1
+  const String downloadUrl =
+      "https://send.firefox.com/download/a4b64a580d022a54"; // 128位的 oad2
   Directory dir = await getApplicationDocumentsDirectory();
 
-//  File f = new File(dir.path + "/firmware.bin");
-//  Response response = await Dio().download(downloadUrl, f.path);
-//  print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
-//  return new File(dir.path + "/firmware.bin");
-  return new File(dir.path + "/app_oad1.bin");
+  File f = new File(dir.path + "/firmware.bin");
+  if (!await f.exists()) {
+    Response response = await Dio().download(downloadUrl, f.path);
+    print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
+  }
+  return new File(dir.path + "/firmware.bin");
 }
+
 ///
 /// 将二进制文件转换成 二维列表
 Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<int> content = await (await f).readAsBytes();
   List<List<int>> binList = [];
+
   /// 发送数据的长度
-  const int sendLength = 16;
+  const int sendLength = 128;
 
   // 第一包
   binList.add(content.sublist(0, 16));
   // 后面的包
-  for (int i = 16; i < content.length; i += sendLength) {
+  for (int i = 0; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;
     binList.add(content.sublist(i, index));

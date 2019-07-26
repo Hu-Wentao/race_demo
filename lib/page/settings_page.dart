@@ -9,7 +9,10 @@ import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
+
+
 class SettingsPage extends StatelessWidget {
+
   final String title;
   final HomeBloc homeBloc;
 
