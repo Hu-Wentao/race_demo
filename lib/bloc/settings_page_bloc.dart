@@ -15,16 +15,17 @@ class SettingsPageBloc extends BaseBloc {
 
   bool isUpdating = false;
 
-//  BluetoothDevice bleDevice;
   List<List<int>> binContent;
   int openCharDelay = 0;
+
+//  //t odo 升级计时
+//  double updateTimer;
 
   @override
   void dispose() {
     _transportDevice.close();
     _oadCtrl.close();
     _updateFirmware.close();
-//    _notifyController.close();
     _updateControl.close();
   }
 
@@ -42,13 +43,6 @@ class SettingsPageBloc extends BaseBloc {
   StreamSink<BluetoothDevice> get inAddOadCmd => _oadCtrl.sink;
 
   Stream<BluetoothDevice> get _outOadCmd => _oadCtrl.stream;
-
-  // 监听各个char的通知 // todo 可以整合到 _updateControl 中
-//  StreamController<NotifyInfo> _notifyController = StreamController.broadcast();
-
-//  StreamSink<NotifyInfo> get _inAddNotify => _notifyController.sink;
-
-//  Stream<NotifyInfo> get _outGetNotify => _notifyController.stream;
 
   // 设备升级流, 只是用来展示固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
@@ -68,9 +62,6 @@ class SettingsPageBloc extends BaseBloc {
 
   SettingsPageBloc() {
     _outOadCmd.listen((device) => _oadFlow(device));
-    //
-//    _outGetNotify.listen((notify) => _oadNotify(notify));
-    //
     _outGetUpdateCmd.listen((updateCmd) => _exeUpdateCmd(updateCmd));
   }
 
@@ -136,6 +127,7 @@ class SettingsPageBloc extends BaseBloc {
                 .write(value + binContent[index], withoutResponse: true);
             break;
           case "ffc4":
+            isUpdating = false;
             print(
                 'SettingsPageBloc._oadNotify 监听到ffc4: ${notifyInfo.notifyValue}');
             _inShowUpdateProgress.add(UpdateProgressInfo(
