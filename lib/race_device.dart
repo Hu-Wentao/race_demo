@@ -6,8 +6,6 @@ import 'dart:async';
 
 import 'bloc/settings_page_bloc.dart';
 
-typedef VoidCallback =  void Function();
-
 abstract class RaceDevice {
   final BluetoothDevice device;
 
@@ -69,17 +67,22 @@ class DeviceCc2640 extends RaceDevice {
       _statusChar ?? (_statusChar = (await charMap)[statusCharUuid]);
 
   @override
-  openAndListenCharNotify(StreamSink _inAddUpdateCmd, List<String> charUuidList) {
-    charUuidList.forEach((uuid) async {
-      // TODO DEL ..........................................................
-      print('RaceDevice.openCharNotify ### test 正在打开 $uuid 的通知....');
-      await ((await charMap)[uuid]).setNotifyValue(true);
-//      onCharNotifyOpened(_charMap[uuid]);
-      (await charMap)[uuid].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
-        UpdatePhase.RECEIVE_NOTIFY,
-        notifyInfo: NotifyInfo(char: (_charMap)[uuid], notifyValue: notify))));
-      print('RaceDevice.openCharNotify ### test 成功打开 $uuid 的通知');
-    });
+  openAndListenCharNotify(StreamSink _inAddUpdateCmd, List<String> charUuidList) async {
+
+    for(int i =0; i<charUuidList.length; i++) {
+      print('DeviceCc2640.openAndListenCharNotify ${DateTime.now().toIso8601String()} ### test 正在打开 ${charUuidList[i]} 的通知....');
+
+
+      // 无法省略...
+      await Future.delayed(const Duration(milliseconds: 700));
+
+      (await charMap)[charUuidList[i]].setNotifyValue(true);   // 库 存在问题......., setNotifyValue() 无法等待获取返回值
+
+      (await charMap)[charUuidList[i]].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
+          UpdatePhase.RECEIVE_NOTIFY,
+          notifyInfo: NotifyInfo(((_charMap)[charUuidList[i]]), notify))));
+      print('DeviceCc2640.openAndListenCharNotify ${DateTime.now().toIso8601String()} ### test 成功打开 ${charUuidList[i]} 的通知');
+    }
   }
 
   @override
@@ -87,15 +90,15 @@ class DeviceCc2640 extends RaceDevice {
 }
 
 class NotifyInfo {
-  String charKeyUuid;
+//  String charKeyUuid;
   List<int> notifyValue;
   BluetoothCharacteristic char;
 
-  NotifyInfo({this.char, this.charKeyUuid, this.notifyValue});
+  NotifyInfo(this.char, this.notifyValue);
 
   @override
   toString() {
     return "From: ${char.uuid
-        .toString()} Key UUID : $charKeyUuid, Notify: $notifyValue";
+        .toString()} Key UUID : ${char.uuid.toString()}, Notify: $notifyValue";
   }
 }

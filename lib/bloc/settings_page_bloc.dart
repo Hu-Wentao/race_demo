@@ -16,7 +16,6 @@ class SettingsPageBloc extends BaseBloc {
   bool isUpdating = false;
 
   List<List<int>> binContent;
-  int openCharDelay = 0;
 
 //  //t odo 升级计时
 //  double updateTimer;
@@ -78,7 +77,9 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
-    _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
+    if (updateCmd.updatePhase != UpdatePhase.RECEIVE_NOTIFY) {
+      _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
+    }
     switch (updateCmd.updatePhase) {
       case UpdatePhase.GET_FIRM:
         binContent = await _getByteList(_getFirmwareFromNet());
@@ -92,12 +93,13 @@ class SettingsPageBloc extends BaseBloc {
             .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
       case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-        currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
+        await currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
         ]);
 
+        await Future.delayed(const Duration(seconds: 1));
         print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0]}');
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
@@ -105,28 +107,27 @@ class SettingsPageBloc extends BaseBloc {
       case UpdatePhase.RECEIVE_NOTIFY:
         NotifyInfo notifyInfo = updateCmd.notifyInfo;
         print(
-            'SettingsPageBloc._exeUpdateCmd 监听到 ${notifyInfo.charKeyUuid} 消息: ${notifyInfo.notifyValue}');
+            'SettingsPageBloc._exeUpdateCmd 监听到 ${notifyInfo.char.uuid.toString()} 消息: ${notifyInfo.notifyValue}');
         if (notifyInfo.notifyValue.length == 0) {
           print('由于收到的消息长度为0, 所以忽略该消息');
           return;
         }
-        switch (notifyInfo.charKeyUuid) {
-          case "abf1":
-          case "ffc1":
-          case "ffc2":
+        switch (notifyInfo.char.uuid.toString()) {
+          case DeviceCc2640.identifyCharUuid:
+          case DeviceCc2640.blockCharUuid:
             if (notifyInfo.notifyValue.length != 2) break;
             List<int> value = notifyInfo.notifyValue;
             int index = value[0] + value[1] * 256;
-            _inShowUpdateProgress.add(UpdateProgressInfo(
-                UpdatePhase.RECEIVE_NOTIFY,
-                phraseProgress: index / binContent.length));
             print(
-                'SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
+                'SettingsPageBloc._oadNotify 正在向ffc2发送: ${value + binContent[index]}');
             // 将索引号加上
             notifyInfo.char
                 .write(value + binContent[index], withoutResponse: true);
+            _inShowUpdateProgress.add(UpdateProgressInfo(
+                UpdatePhase.RECEIVE_NOTIFY,
+                phraseProgress: index / binContent.length));
             break;
-          case "ffc4":
+          case DeviceCc2640.statusCharUuid:
             isUpdating = false;
             print(
                 'SettingsPageBloc._oadNotify 监听到ffc4: ${notifyInfo.notifyValue}');
@@ -138,12 +139,6 @@ class SettingsPageBloc extends BaseBloc {
         break;
     }
   }
-
-//  _onCharNotifyOpened(BluetoothCharacteristic char) {
-//    char.value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
-//        UpdatePhase.RECEIVE_NOTIFY,
-//        notifyInfo: NotifyInfo(char: char, notifyValue: notify))));
-//  }
 }
 
 class UpdateCtrlCmd {
@@ -188,13 +183,16 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
-//  const String downloadUrl ="https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
-  const String downloadUrl ="https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
+  const String downloadUrl =
+//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
+  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
 
-//  const String downloadUrl ="https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
-//  const String downloadUrl ="https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
+//  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
+//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
+
+//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32_CRC.bin";
+//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32_CRC.bin";
   Directory dir = await getApplicationDocumentsDirectory();
-
   File f = new File(dir.path + "/firmware.bin");
   if (!await f.exists()) {
     Response response = await Dio().download(downloadUrl, f.path);
@@ -210,12 +208,11 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<List<int>> binList = [];
 
   /// 发送数据的长度
-  const int sendLength = 128;
-
+  const int sendLength = 16;
   // 第一包
   binList.add(content.sublist(0, 16));
   // 后面的包
-  for (int i = 0; i < content.length; i += sendLength) {
+  for (int i = 16; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;
     binList.add(content.sublist(i, index));
