@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'dart:async';
 
+import 'bloc/settings_page_bloc.dart';
+
 typedef VoidCallback =  void Function();
 
 abstract class RaceDevice {
@@ -19,7 +21,7 @@ abstract class RaceDevice {
     if (priority != null) device.requestConnectionPriority(priority);
   }
 
-  openAndListenCharNotify(VoidCallback onCharNotifyOpened(BluetoothCharacteristic char), List<String> charUuidList);
+  openAndListenCharNotify(StreamSink sink, List<String> charUuidList);
 
   Future<BluetoothService> get oadService;
 
@@ -67,12 +69,15 @@ class DeviceCc2640 extends RaceDevice {
       _statusChar ?? (_statusChar = (await charMap)[statusCharUuid]);
 
   @override
-  openAndListenCharNotify(VoidCallback onCharNotifyOpened(BluetoothCharacteristic char), List<String> charUuidList) {
+  openAndListenCharNotify(StreamSink _inAddUpdateCmd, List<String> charUuidList) {
     charUuidList.forEach((uuid) async {
       // TODO DEL ..........................................................
       print('RaceDevice.openCharNotify ### test 正在打开 $uuid 的通知....');
       await (_charMap[uuid]).setNotifyValue(true);
-      onCharNotifyOpened(_charMap[uuid]);
+//      onCharNotifyOpened(_charMap[uuid]);
+      _charMap[uuid].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
+        UpdatePhase.RECEIVE_NOTIFY,
+        notifyInfo: NotifyInfo(char: _charMap[uuid], notifyValue: notify))));
       print('RaceDevice.openCharNotify ### test 成功打开 $uuid 的通知');
     });
   }

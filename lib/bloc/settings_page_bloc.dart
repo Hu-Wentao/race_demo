@@ -92,7 +92,7 @@ class SettingsPageBloc extends BaseBloc {
             .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
       case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-        currentRaceDevice.openAndListenCharNotify(_onCharNotifyOpened, [
+        currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
@@ -139,11 +139,11 @@ class SettingsPageBloc extends BaseBloc {
     }
   }
 
-  _onCharNotifyOpened(BluetoothCharacteristic char) {
-    char.value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
-        UpdatePhase.RECEIVE_NOTIFY,
-        notifyInfo: NotifyInfo(char: char, notifyValue: notify))));
-  }
+//  _onCharNotifyOpened(BluetoothCharacteristic char) {
+//    char.value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
+//        UpdatePhase.RECEIVE_NOTIFY,
+//        notifyInfo: NotifyInfo(char: char, notifyValue: notify))));
+//  }
 }
 
 class UpdateCtrlCmd {
