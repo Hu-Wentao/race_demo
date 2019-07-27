@@ -7,6 +7,13 @@ import 'package:race_demo/util/util.dart';
 
 import 'base_bloc.dart';
 
+
+
+//todo modify....................VVV.VVV.VVV....
+const String DEVICE_START_NAME = "Race_OAD";
+
+
+
 class StatusPageBloc extends BaseBloc {
   @override
   void dispose() {
@@ -76,8 +83,7 @@ class StatusPageBloc extends BaseBloc {
 
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
-    //todo modify.........................................VVV.VVV.VVV....
-        .then((list) => list.where((d)=>d.name.startsWith("Race_OAD")).toList())
+        .then((list) => list.where((d)=>d.name.startsWith(DEVICE_START_NAME)).toList())
         .then((rightList) {
       if (rightList.length == 0) {
         print(
@@ -106,10 +112,8 @@ class StatusPageBloc extends BaseBloc {
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
-
-      //todo modify debug param
       var rightList =
-          list.where((d) => d.device.name.startsWith("Race_")).toList();
+          list.where((d) => d.device.name.startsWith(DEVICE_START_NAME)).toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
       } else if (rightList.length == 1) {
