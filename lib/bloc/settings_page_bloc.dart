@@ -188,10 +188,10 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
-//  const String downloadUrl = "https://send.firefox.com/download/4f82d4d741785cb5";  //OAD1_16
-//  const String downloadUrl = "https://send.firefox.com/download/87f7676cd7dbf541";  //OAD1_32
-  const String downloadUrl = "https://send.firefox.com/download/822d28d47752a360";  //OAD2_16
-//  const String downloadUrl = "https://send.firefox.com/download/7780eb37e7a236a5";  //OAD2_32
+//  const String downloadUrl = "https://send.firefox.com/api/download/87f7676cd7dbf541";  //OAD1_16 https://send.firefox.com/download/87f7676cd7dbf541/#tN-BTbkitGjT3kLZG-Qxkg
+//  const String downloadUrl = "https://send.firefox.com/api/download/ec51026b789212a0";  //OAD1_32
+  const String downloadUrl = "https://send.firefox.com/api/download/87f7676cd7dbf541";  //OAD2_16
+//  const String downloadUrl = "https://send.firefox.com/api/download/7780eb37e7a236a5";  //OAD2_32
   Directory dir = await getApplicationDocumentsDirectory();
 
   File f = new File(dir.path + "/firmware.bin");
