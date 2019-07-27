@@ -188,11 +188,10 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
-//  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/bean_v01.bin";
-//  const String downloadUrl = "http://file.racehf.com/RaceHF_Bean/app_oad1.bin";
-//  const String downloadUrl = "https://send.firefox.com/download/7bac0850b24cc6e6";  // 128位的 oad1
-  const String downloadUrl =
-      "https://send.firefox.com/download/a4b64a580d022a54"; // 128位的 oad2
+//  const String downloadUrl = "https://send.firefox.com/download/4f82d4d741785cb5";  //OAD1_16
+//  const String downloadUrl = "https://send.firefox.com/download/3c2ec90398a9a42e";  //OAD1_32
+  const String downloadUrl = "https://send.firefox.com/download/ae52c2de07cbdcdc";  //OAD2_16
+//  const String downloadUrl = "https://send.firefox.com/download/d7821bdde6953b5c";  //OAD2_32
   Directory dir = await getApplicationDocumentsDirectory();
 
   File f = new File(dir.path + "/firmware.bin");
