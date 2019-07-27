@@ -50,6 +50,9 @@ class SettingsPage extends StatelessWidget {
               TextDivider(
                 "About device",
               ),
+              // 计时............................................................
+
+
               RadiusContainer(
                 child: _buildUpgradeFirmware(context, homeBloc, _bloc),
               ),

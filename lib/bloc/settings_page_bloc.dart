@@ -17,8 +17,8 @@ class SettingsPageBloc extends BaseBloc {
 
   List<List<int>> binContent;
 
-//  //t odo 升级计时
-//  double updateTimer;
+//  //todo 升级计时
+  double updateTimer;
 
   @override
   void dispose() {
