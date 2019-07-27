@@ -9,8 +9,6 @@ import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
-
-
 class SettingsPage extends StatelessWidget {
   final String title;
   final HomeBloc homeBloc;
@@ -19,7 +17,8 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final SettingsPageBloc _bloc = BlocProvider.of<SettingsPageBloc>(context);
+    final SettingsPageBloc _settingsBloc =
+        BlocProvider.of<SettingsPageBloc>(context);
     return Scaffold(
       appBar: AppBar(
         title: Text(this.title),
@@ -50,11 +49,9 @@ class SettingsPage extends StatelessWidget {
               TextDivider(
                 "About device",
               ),
-              // 计时............................................................
-
 
               RadiusContainer(
-                child: _buildUpgradeFirmware(context, homeBloc, _bloc),
+                child: _buildUpgradeFirmware(context, homeBloc, _settingsBloc),
               ),
             ],
           ),
@@ -90,6 +87,7 @@ class SettingsPage extends StatelessWidget {
         String updatePhaseMsg = "Null";
         switch (snap.data.updatePhase) {
           case UpdatePhase.GET_FIRM:
+            settingsBloc.inAddTimerCmd.add(true);
             updatePhaseMsg = "Downloading firm...";
             break;
           case UpdatePhase.REQUEST_MTU_PRIORITY:
@@ -99,6 +97,7 @@ class SettingsPage extends StatelessWidget {
             updatePhaseMsg = "Open characteristic notify...";
             break;
           case UpdatePhase.RECEIVE_NOTIFY:
+            settingsBloc.inAddTimerCmd.add(false);
             updatePhaseMsg = "Sending Firmware...";
             break;
         }
@@ -122,7 +121,11 @@ class SettingsPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
-                  Text("Update Phrase  ", style: greyTextStyle,softWrap: true,),
+                  Text(
+                    "Update Phrase  ",
+                    style: greyTextStyle,
+                    softWrap: true,
+                  ),
                   Text(
                     updatePhaseMsg,
                     style: greyTextStyle,
@@ -143,6 +146,15 @@ class SettingsPage extends StatelessWidget {
               trailing: Text(
                 "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
                 style: greyTextStyle,
+              ),
+            ),
+            // 计时............................................................
+            StreamBuilder<int>(
+              stream: settingsBloc.outCurrentTime,
+              initialData: 0,
+              builder: (context, snap) => Padding(
+                padding: const EdgeInsets.fromLTRB(20, 4, 8, 8),
+                child: Text("${snap.data} sec"),
               ),
             ),
           ],

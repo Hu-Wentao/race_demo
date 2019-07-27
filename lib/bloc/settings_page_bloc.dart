@@ -18,7 +18,8 @@ class SettingsPageBloc extends BaseBloc {
   List<List<int>> binContent;
 
 //  //todo 升级计时
-  double updateTimer;
+  int currentUpdateTime = 0;
+  Timer _updateTimer;
 
   @override
   void dispose() {
@@ -26,6 +27,10 @@ class SettingsPageBloc extends BaseBloc {
     _oadCtrl.close();
     _updateFirmware.close();
     _updateControl.close();
+
+    // 计时器
+    _timerCtrl.close();
+    _timeCtrl.close();
   }
 
   // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用redux取代
@@ -36,7 +41,7 @@ class SettingsPageBloc extends BaseBloc {
 
   Stream<BluetoothDevice> get outConnectedDevice => _transportDevice.stream;
 
-  // 控制OAD 开始与结束
+  // 控制OAD 开始与结束 // todo 可以与 _updateControl 合并
   StreamController<BluetoothDevice> _oadCtrl = StreamController();
 
   StreamSink<BluetoothDevice> get inAddOadCmd => _oadCtrl.sink;
@@ -59,9 +64,28 @@ class SettingsPageBloc extends BaseBloc {
 
   Stream<UpdateCtrlCmd> get _outGetUpdateCmd => _updateControl.stream;
 
+  // 计时器.................................................................................
+  StreamController<bool> _timerCtrl = StreamController.broadcast();
+  // 传入 -1 表示 开始计时, 传入-2, 表示停止计时
+  StreamSink<bool> get inAddTimerCmd => _timerCtrl.sink;
+  Stream<bool> get _outTimeCmd => _timerCtrl.stream;
+
+  StreamController<int> _timeCtrl = StreamController.broadcast();
+  StreamSink<int> get _inAddCurrentUpdateTime => _timeCtrl.sink;
+  Stream<int> get outCurrentTime => _timeCtrl.stream;
   SettingsPageBloc() {
     _outOadCmd.listen((device) => _oadFlow(device));
     _outGetUpdateCmd.listen((updateCmd) => _exeUpdateCmd(updateCmd));
+
+    _outTimeCmd.listen((start) {
+      if(start){
+        _updateTimer = Timer.periodic(const Duration(seconds: 1), (_){
+          _inAddCurrentUpdateTime.add(currentUpdateTime++);
+        });
+      }else{
+        _updateTimer.cancel();
+      }
+    });
   }
 
   Future _oadFlow(BluetoothDevice device) async {
@@ -184,8 +208,8 @@ enum UpdatePhase {
 
 Future<File> _getFirmwareFromNet() async {
   const String downloadUrl =
-//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
-  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
+      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
+//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
 
 //  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
