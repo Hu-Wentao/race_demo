@@ -73,11 +73,11 @@ class DeviceCc2640 extends RaceDevice {
     charUuidList.forEach((uuid) async {
       // TODO DEL ..........................................................
       print('RaceDevice.openCharNotify ### test 正在打开 $uuid 的通知....');
-      await (_charMap[uuid]).setNotifyValue(true);
+      await ((await charMap)[uuid]).setNotifyValue(true);
 //      onCharNotifyOpened(_charMap[uuid]);
-      _charMap[uuid].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
+      (await charMap)[uuid].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
         UpdatePhase.RECEIVE_NOTIFY,
-        notifyInfo: NotifyInfo(char: _charMap[uuid], notifyValue: notify))));
+        notifyInfo: NotifyInfo(char: (_charMap)[uuid], notifyValue: notify))));
       print('RaceDevice.openCharNotify ### test 成功打开 $uuid 的通知');
     });
   }
