@@ -24,7 +24,7 @@ class SettingsPageBloc extends BaseBloc {
     _transportDevice.close();
     _oadCtrl.close();
     _updateFirmware.close();
-    _notifyController.close();
+//    _notifyController.close();
     _updateControl.close();
   }
 
@@ -44,11 +44,11 @@ class SettingsPageBloc extends BaseBloc {
   Stream<BluetoothDevice> get _outOadCmd => _oadCtrl.stream;
 
   // 监听各个char的通知 // todo 可以整合到 _updateControl 中
-  StreamController<NotifyInfo> _notifyController = StreamController.broadcast();
+//  StreamController<NotifyInfo> _notifyController = StreamController.broadcast();
 
-  StreamSink<NotifyInfo> get _inAddNotify => _notifyController.sink;
+//  StreamSink<NotifyInfo> get _inAddNotify => _notifyController.sink;
 
-  Stream<NotifyInfo> get _outGetNotify => _notifyController.stream;
+//  Stream<NotifyInfo> get _outGetNotify => _notifyController.stream;
 
   // 设备升级流, 只是用来展示固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
@@ -69,7 +69,7 @@ class SettingsPageBloc extends BaseBloc {
   SettingsPageBloc() {
     _outOadCmd.listen((device) => _oadFlow(device));
     //
-    _outGetNotify.listen((notify) => _oadNotify(notify));
+//    _outGetNotify.listen((notify) => _oadNotify(notify));
     //
     _outGetUpdateCmd.listen((updateCmd) => _exeUpdateCmd(updateCmd));
   }
@@ -84,40 +84,6 @@ class SettingsPageBloc extends BaseBloc {
     currentRaceDevice = DeviceCc2640(device);
 
     _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.GET_FIRM));
-  }
-
-
-  _oadNotify(NotifyInfo notify) {
-//    print(
-//        'SettingsPageBloc._oadNotify  监听到 ${notify.charKeyUuid} 的消息: ${notify
-//            .notifyValue}');
-    if (notify.notifyValue.length == 0) {
-      print('由于受到的消息长度为0, 所以忽略该消息');
-      return;
-    }
-    switch (notify.charKeyUuid) {
-      case "abf1":
-      case "ffc1":
-      case "ffc2":
-        print("从 ffc2 中监听到信息： ${notify.notifyValue}");
-        if (notify.notifyValue.length != 2) break;
-        List<int> value = notify.notifyValue;
-        int index = value[0] + value[1] * 256;
-        _inShowUpdateProgress.add(UpdateProgressInfo(UpdatePhase.SEND_FIRM,
-            phraseProgress: index / binContent.length));
-
-        print(
-            'SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
-        // 将索引号加上
-        notify.char.write(value + binContent[index], withoutResponse: true);
-        break;
-      case "ffc4":
-        print('SettingsPageBloc._oadNotify 监听到ffc4: ${notify.notifyValue}');
-        //todo modify...
-        _inShowUpdateProgress.add(
-            UpdateProgressInfo(UpdatePhase.RECEIVE_RESULT, phraseProgress: 1));
-        break;
-    }
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
@@ -135,7 +101,7 @@ class SettingsPageBloc extends BaseBloc {
             .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
       case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-        currentRaceDevice.openAndListenCharNotify(_inAddNotify, [
+        currentRaceDevice.openAndListenCharNotify(_onCharNotifyOpened, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
@@ -145,27 +111,56 @@ class SettingsPageBloc extends BaseBloc {
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
-      case UpdatePhase.SEND_FIRM:
-        // TODO: Handle this case.
-        break;
-      case UpdatePhase.RECEIVE_RESULT:
-        // TODO: Handle this case.
+      case UpdatePhase.RECEIVE_NOTIFY:
+        NotifyInfo notifyInfo = updateCmd.notifyInfo;
+        print(
+            'SettingsPageBloc._exeUpdateCmd 监听到 ${notifyInfo.charKeyUuid} 消息: ${notifyInfo.notifyValue}');
+        if (notifyInfo.notifyValue.length == 0) {
+          print('由于收到的消息长度为0, 所以忽略该消息');
+          return;
+        }
+        switch (notifyInfo.charKeyUuid) {
+          case "abf1":
+          case "ffc1":
+          case "ffc2":
+            if (notifyInfo.notifyValue.length != 2) break;
+            List<int> value = notifyInfo.notifyValue;
+            int index = value[0] + value[1] * 256;
+            _inShowUpdateProgress.add(UpdateProgressInfo(
+                UpdatePhase.RECEIVE_NOTIFY,
+                phraseProgress: index / binContent.length));
+            print(
+                'SettingsPageBloc._oadNotify 正在向 ffc2 发送: ${value + binContent[index]}');
+            // 将索引号加上
+            notifyInfo.char
+                .write(value + binContent[index], withoutResponse: true);
+            break;
+          case "ffc4":
+            print(
+                'SettingsPageBloc._oadNotify 监听到ffc4: ${notifyInfo.notifyValue}');
+            _inShowUpdateProgress.add(UpdateProgressInfo(
+                UpdatePhase.RECEIVE_NOTIFY,
+                phraseProgress: 1));
+            break;
+        }
         break;
     }
+  }
+
+  _onCharNotifyOpened(BluetoothCharacteristic char) {
+    char.value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
+        UpdatePhase.RECEIVE_NOTIFY,
+        notifyInfo: NotifyInfo(char: char, notifyValue: notify))));
   }
 }
 
 class UpdateCtrlCmd {
-  final BluetoothDevice device;
   final UpdatePhase updatePhase;
-  final BluetoothService oadService;
-  final BluetoothCharacteristic oadChar;
+  final NotifyInfo notifyInfo;
 
   UpdateCtrlCmd(
     this.updatePhase, {
-    this.oadChar,
-    this.oadService,
-    this.device,
+    this.notifyInfo,
   });
 }
 
@@ -176,15 +171,13 @@ class UpdateProgressInfo {
   double get totalProgress {
     switch (updatePhase) {
       case UpdatePhase.GET_FIRM:
-        return phraseProgress * 0.05;
+        return phraseProgress * 0.03;
       case UpdatePhase.REQUEST_MTU_PRIORITY:
-        return phraseProgress * 0.01 + 0.04;
+        return phraseProgress * 0.01 + 0.03;
       case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-        return phraseProgress * 0.03 + 0.06;
-      case UpdatePhase.SEND_FIRM:
-        return phraseProgress * 0.9 + 0.09;
-      case UpdatePhase.RECEIVE_RESULT:
-        return phraseProgress * 0.01 + 0.99;
+        return phraseProgress * 0.01 + 0.04;
+      case UpdatePhase.RECEIVE_NOTIFY:
+        return phraseProgress * 0.95 + 0.05;
     }
     return 0;
   }
@@ -196,11 +189,10 @@ class UpdateProgressInfo {
 }
 
 enum UpdatePhase {
-  GET_FIRM, // 5%
+  GET_FIRM, // 3%
   REQUEST_MTU_PRIORITY, // 1%
-  LISTEN_CHARA_AND_SEND_HEAD, // 3%
-  SEND_FIRM, // 90%
-  RECEIVE_RESULT, // 1%
+  LISTEN_CHARA_AND_SEND_HEAD, // 1%
+  RECEIVE_NOTIFY, // 95%
 }
 
 Future<File> _getFirmwareFromNet() async {

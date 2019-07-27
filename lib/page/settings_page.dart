@@ -99,7 +99,7 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
             updatePhaseMsg = "Open characteristic notify...";
             break;
-          case UpdatePhase.SEND_FIRM:
+          case UpdatePhase.RECEIVE_NOTIFY:
             updatePhaseMsg = "Sending Firmware...";
             break;
           case UpdatePhase.RECEIVE_RESULT:
