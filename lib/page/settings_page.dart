@@ -12,7 +12,6 @@ import 'package:race_demo/widget/text_divider_widget.dart';
 
 
 class SettingsPage extends StatelessWidget {
-
   final String title;
   final HomeBloc homeBloc;
 
@@ -93,19 +92,12 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.REQUEST_MTU_PRIORITY:
             updatePhaseMsg = "Request MTU & Priority...";
             break;
-//          case UpdatePhase.FIND_SERVICE:
-//            updatePhaseMsg = "Finding Service...";
-            break;
           case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
             updatePhaseMsg = "Open characteristic notify...";
             break;
           case UpdatePhase.RECEIVE_NOTIFY:
             updatePhaseMsg = "Sending Firmware...";
             break;
-          case UpdatePhase.RECEIVE_RESULT:
-            updatePhaseMsg = "Receive result...";
-            break;
-
         }
 
         return NoneBorderColorExpansionTile(

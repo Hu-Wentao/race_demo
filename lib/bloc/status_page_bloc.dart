@@ -77,7 +77,7 @@ class StatusPageBloc extends BaseBloc {
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
     //todo modify.........................................VVV.VVV.VVV....
-        .then((list) => list.where((d)=>d.name.startsWith("Race_")).toList())
+        .then((list) => list.where((d)=>d.name.startsWith("Race_OAD")).toList())
         .then((rightList) {
       if (rightList.length == 0) {
         print(

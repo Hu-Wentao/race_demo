@@ -148,11 +148,11 @@ class StatusPage extends StatelessWidget {
               // del VVV
               deviceList.forEach((d) {
                 switch (d.name) {
-//                  case "RaceDB_0020":
-//                  case "RaceDB_0021":
                   case "RaceDB_0010":
                   case "RaceDB_0011":
                   case "Race_0002":
+                  case "Race_OAD1":
+                  case "Race_OAD2":
                     print(
                         'StatusPage._buildBtnBy 发现列表找包含: ${d.name} 已自动选择该设备 #### todo ');
                     inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, d));
