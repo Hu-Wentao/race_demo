@@ -207,6 +207,7 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
+  const String firmwareName = "firmware.bin";
   const String downloadUrl =
       "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
@@ -217,12 +218,12 @@ Future<File> _getFirmwareFromNet() async {
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32_CRC.bin";
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32_CRC.bin";
   Directory dir = await getApplicationDocumentsDirectory();
-  File f = new File(dir.path + "/firmware.bin");
+  File f = new File(dir.path + "/$firmwareName");
   if (!await f.exists()) {
     Response response = await Dio().download(downloadUrl, f.path);
     print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
   }
-  return new File(dir.path + "/firmware.bin");
+  return new File(dir.path + "/$firmwareName");
 }
 
 ///
