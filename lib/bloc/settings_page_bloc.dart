@@ -18,8 +18,7 @@ class SettingsPageBloc extends BaseBloc {
   List<List<int>> binContent;
 
 //  //todo 升级计时
-  int currentUpdateTime = 0;
-  Timer _updateTimer;
+  int updateStartTime = 0;
 
   @override
   void dispose() {
@@ -79,11 +78,9 @@ class SettingsPageBloc extends BaseBloc {
 
     _outTimeCmd.listen((start) {
       if(start){
-        _updateTimer = Timer.periodic(const Duration(seconds: 1), (_){
-          _inAddCurrentUpdateTime.add(currentUpdateTime++);
-        });
+        updateStartTime = DateTime.now().millisecondsSinceEpoch;
       }else{
-        _updateTimer.cancel();
+      _inAddCurrentUpdateTime.add(DateTime.now().millisecondsSinceEpoch-updateStartTime);
       }
     });
   }
@@ -207,13 +204,14 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromNet() async {
-  const String firmwareName = "firmware.bin";
+  const String firmwareName = "app_OAD2_32.bin";
+//  const String firmwareName = "firmware.bin";
   const String downloadUrl =
-//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
+      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
 
 //  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
-   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
+//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
 
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32_CRC.bin";
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32_CRC.bin";
@@ -234,9 +232,6 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
 
   /// 发送数据的长度
   const int sendLength = 32;
-//   第一包
-//  binList.add(content.sublist(0, 16));
-  // 后面的包
   for (int i = 0; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;

@@ -154,7 +154,7 @@ class SettingsPage extends StatelessWidget {
               initialData: 0,
               builder: (context, snap) => Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 8, 8),
-                child: Text("${snap.data} sec"),
+                child: Text("${snap.data/1000} sec"),
               ),
             ),
           ],
