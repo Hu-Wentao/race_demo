@@ -8,7 +8,7 @@ import 'package:race_demo/util/util.dart';
 import 'base_bloc.dart';
 
 //todo modify....................VVV.VVV.VVV....
-const String DEVICE_NAME_START_WITH = "Race_OAD";
+const String DEVICE_NAME_START_WITH = "Race_";
 
 class StatusPageBloc extends BaseBloc {
   @override
@@ -79,7 +79,6 @@ class StatusPageBloc extends BaseBloc {
 
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
-//        .then((list) => list.where((d)=>d.id.toString() == "")
         .then((list) => list
             .where((d) => d.name.startsWith(DEVICE_NAME_START_WITH))
             .toList())
@@ -112,18 +111,16 @@ class StatusPageBloc extends BaseBloc {
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
       var rightList =
-//          list.where((d) =>   d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH)).toList();
           list.where((d) {
-        print("查找到设备信息:" +
-            "\nadvertisementData.localName: ${d.advertisementData.localName}" +
-            "\nadvertisementData.serviceUuids: ${d.advertisementData.serviceUuids}"+
-        "\nrssi: ${d.rssi}"+
-        "\ndevice.id.: ${d.device.id.toString()}"+
-        "\ndevice.id.id: ${d.device.id.id}"+
-        "\ndevice.name: ${d.device.name}"
-        );
-
-        return d.device.name.startsWith(DEVICE_NAME_START_WITH);
+//        print("查找到设备信息:" +
+//            "\nadvertisementData.localName: ${d.advertisementData.localName}" +
+//            "\nadvertisementData.serviceUuids: ${d.advertisementData.serviceUuids}"+
+//        "\nrssi: ${d.rssi}"+
+//        "\ndevice.id.: ${d.device.id.toString()}"+
+//        "\ndevice.id.id: ${d.device.id.id}"+
+//        "\ndevice.name: ${d.device.name}"
+//        );
+        return (d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH) || d.device.name.startsWith(DEVICE_NAME_START_WITH));
       }).toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
