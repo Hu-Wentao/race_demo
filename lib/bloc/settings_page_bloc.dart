@@ -209,11 +209,11 @@ enum UpdatePhase {
 Future<File> _getFirmwareFromNet() async {
   const String firmwareName = "firmware.bin";
   const String downloadUrl =
-      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
+//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
 
 //  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
-//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
+   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
 
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32_CRC.bin";
 //   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32_CRC.bin";
@@ -233,7 +233,7 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<List<int>> binList = [];
 
   /// 发送数据的长度
-  const int sendLength = 16;
+  const int sendLength = 32;
 //   第一包
 //  binList.add(content.sublist(0, 16));
   // 后面的包
