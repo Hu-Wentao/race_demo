@@ -1,4 +1,4 @@
-// Copyright 2019/7/26, Hu-Wentao. All rights reserved.
+// Copyright 2019/7/26, Hu Wentao. All rights reserved.
 // Email: hu.wentao@outlook.com
 import 'dart:async';
 import 'dart:io';
@@ -203,10 +203,11 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD2_128_CRC.bin";
+  const String firmwareName = "firmware.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =
-      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
+  "file.racehf.com/bean_latest.bin";
+//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
 
 //  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";

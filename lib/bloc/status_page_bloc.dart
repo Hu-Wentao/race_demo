@@ -80,6 +80,7 @@ class StatusPageBloc extends BaseBloc {
 
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
+//        .then((list) => list.where((d)=>d.id.toString() == "")
         .then((list) => list.where((d)=>d.name.startsWith(DEVICE_NAME_START_WITH)).toList())
         .then((rightList) {
       if (rightList.length == 0) {
@@ -110,7 +111,8 @@ class StatusPageBloc extends BaseBloc {
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
       var rightList =
-          list.where((d) => d.device.name.startsWith(DEVICE_NAME_START_WITH)).toList();
+          list.where((d) =>   d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH)).toList();
+//          list.where((d) => d.device.name.startsWith(DEVICE_NAME_START_WITH)).toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
       } else if (rightList.length == 1) {
