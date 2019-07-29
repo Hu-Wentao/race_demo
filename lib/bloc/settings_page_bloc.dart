@@ -17,7 +17,6 @@ class SettingsPageBloc extends BaseBloc {
 
   List<List<int>> binContent;
 
-//  //todo 升级计时
   int updateStartTime = 0;
 
   @override
@@ -65,7 +64,7 @@ class SettingsPageBloc extends BaseBloc {
 
   // 计时器.................................................................................
   StreamController<bool> _timerCtrl = StreamController.broadcast();
-  // 传入 -1 表示 开始计时, 传入-2, 表示停止计时
+  // 传入 true 表示 设置计时起点, 传入 false, 表示发送 当前时间-计时起点 的值
   StreamSink<bool> get inAddTimerCmd => _timerCtrl.sink;
   Stream<bool> get _outTimeCmd => _timerCtrl.stream;
 
@@ -103,13 +102,13 @@ class SettingsPageBloc extends BaseBloc {
     }
     switch (updateCmd.updatePhase) {
       case UpdatePhase.GET_FIRM:
-        binContent = await _getByteList(_getFirmwareFromNet());
+        binContent = await _getByteList(_getFirmwareFromFile());
         _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////
       case UpdatePhase.REQUEST_MTU_PRIORITY:
         currentRaceDevice.requestMtuAndPriority(
-            mtu: 128, priority: ConnectionPriority.high);
+            mtu: 251, priority: ConnectionPriority.high);
         _inAddUpdateCmd
             .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
@@ -203,8 +202,8 @@ enum UpdatePhase {
   RECEIVE_NOTIFY, // 95%
 }
 
-Future<File> _getFirmwareFromNet() async {
-  const String firmwareName = "app_OAD2_32.bin";
+Future<File> _getFirmwareFromFile() async {
+  const String firmwareName = "app_OAD2_128_CRC.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =
       "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
@@ -231,7 +230,7 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<List<int>> binList = [];
 
   /// 发送数据的长度
-  const int sendLength = 32;
+  const int sendLength = 128;
   for (int i = 0; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;

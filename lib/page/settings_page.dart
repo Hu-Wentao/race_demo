@@ -84,10 +84,10 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
+        settingsBloc.inAddTimerCmd.add(snap.data.updatePhase == UpdatePhase.GET_FIRM);
         String updatePhaseMsg = "Null";
         switch (snap.data.updatePhase) {
           case UpdatePhase.GET_FIRM:
-            settingsBloc.inAddTimerCmd.add(true);
             updatePhaseMsg = "Downloading firm...";
             break;
           case UpdatePhase.REQUEST_MTU_PRIORITY:
@@ -97,7 +97,6 @@ class SettingsPage extends StatelessWidget {
             updatePhaseMsg = "Open characteristic notify...";
             break;
           case UpdatePhase.RECEIVE_NOTIFY:
-            settingsBloc.inAddTimerCmd.add(false);
             updatePhaseMsg = "Sending Firmware...";
             break;
         }
