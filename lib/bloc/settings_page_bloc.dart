@@ -124,7 +124,7 @@ class SettingsPageBloc extends BaseBloc {
         ]);
 
         await Future.delayed(const Duration(seconds: 1));
-        print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0]}');
+        print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0,16)}');
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
@@ -234,10 +234,10 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
 
   /// 发送数据的长度
   const int sendLength = 16;
-  // 第一包
-  binList.add(content.sublist(0, 16));
+//   第一包
+//  binList.add(content.sublist(0, 16));
   // 后面的包
-  for (int i = 16; i < content.length; i += sendLength) {
+  for (int i = 0; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;
     binList.add(content.sublist(i, index));
