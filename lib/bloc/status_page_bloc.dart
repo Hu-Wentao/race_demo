@@ -10,13 +10,13 @@ import 'base_bloc.dart';
 //todo modify....................VVV.VVV.VVV....
 const String DEVICE_NAME_START_WITH = "Race_OAD";
 
-
 class StatusPageBloc extends BaseBloc {
   @override
   void dispose() {
     _bleOperatorController.close();
     _btnDataController.close();
   }
+
   // 声明广播, 对widget开放,控制 连接蓝牙设备 的整个流程
   StreamController<BleOpInfo> _bleOperatorController =
       new StreamController.broadcast();
@@ -60,7 +60,6 @@ class StatusPageBloc extends BaseBloc {
         FlutterBlue.instance.stopScan();
         break;
     }
-
   }
 
   // 检测蓝牙是否打开
@@ -81,7 +80,9 @@ class StatusPageBloc extends BaseBloc {
   _findInConnectedDevice() {
     FlutterBlue.instance.connectedDevices
 //        .then((list) => list.where((d)=>d.id.toString() == "")
-        .then((list) => list.where((d)=>d.name.startsWith(DEVICE_NAME_START_WITH)).toList())
+        .then((list) => list
+            .where((d) => d.name.startsWith(DEVICE_NAME_START_WITH))
+            .toList())
         .then((rightList) {
       if (rightList.length == 0) {
         print(
@@ -111,8 +112,19 @@ class StatusPageBloc extends BaseBloc {
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
       var rightList =
-          list.where((d) =>   d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH)).toList();
-//          list.where((d) => d.device.name.startsWith(DEVICE_NAME_START_WITH)).toList();
+//          list.where((d) =>   d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH)).toList();
+          list.where((d) {
+        print("查找到设备信息:" +
+            "\nadvertisementData.localName: ${d.advertisementData.localName}" +
+            "\nadvertisementData.serviceUuids: ${d.advertisementData.serviceUuids}"+
+        "\nrssi: ${d.rssi}"+
+        "\ndevice.id.: ${d.device.id.toString()}"+
+        "\ndevice.id.id: ${d.device.id.id}"+
+        "\ndevice.name: ${d.device.name}"
+        );
+
+        return d.device.name.startsWith(DEVICE_NAME_START_WITH);
+      }).toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
       } else if (rightList.length == 1) {
@@ -159,7 +171,6 @@ enum Operate {
   _SCAN_DEVICE,
   // 连接设备, 该选项需要有参数
   CONNECT_DEVICE,
-
   STOP_SCANNING,
 }
 
