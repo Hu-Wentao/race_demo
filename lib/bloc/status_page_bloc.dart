@@ -67,18 +67,16 @@ class StatusPageBloc extends BaseBloc {
     }
   }
 
-  // 检测蓝牙是否打开
+  // 检测蓝牙状态, 并自动打开
   _checkAndOpenBle() {
-    FlutterBlue.instance.state.listen((bleState) {
+    FlutterBlue.instance.state.where((state)=>[BluetoothState.on, BluetoothState.off].contains(state)).listen((bleState) {
       if (bleState == BluetoothState.on) {
         print('StatusPageBloc._onGetAction 监听到蓝牙已开启, 激活 _FIND_IN_CONNECTED 事件');
         inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
-        return true;
       } else {
-        print('StatusPageBloc._onGetAction 蓝牙未开启 或 处于其他状态 todo #############');
+        print('StatusPageBloc._onGetAction 蓝牙处于关闭状态, 正在请求打开蓝牙');
         _inSetBtnState.add(BtnStreamOpInfo(BleScanState.PLEASE_OPEN_BLE, null));
         BleUtil.openBluetooth();
-        return false;
       }
     });
   }
