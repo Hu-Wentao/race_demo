@@ -58,6 +58,11 @@ class StatusPageBloc extends BaseBloc {
         break;
       case Operate.STOP_SCANNING:
         FlutterBlue.instance.stopScan();
+        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
+        break;
+      case Operate.DISCONNECT_DEVICE:
+        info.device.disconnect();
+        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
         break;
     }
   }
@@ -71,6 +76,7 @@ class StatusPageBloc extends BaseBloc {
         return true;
       } else {
         print('StatusPageBloc._onGetAction 蓝牙未开启 或 处于其他状态 todo #############');
+        _inSetBtnState.add(BtnStreamOpInfo(BleScanState.PLEASE_OPEN_BLE, null));
         BleUtil.openBluetooth();
         return false;
       }
@@ -104,24 +110,18 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-    print('StatusPageBloc._scanDevice 开始扫描');
-    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2));
+    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2)).then((_){
+      _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
+    });
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
-      var rightList =
-          list.where((d) {
-//        print("查找到设备信息:" +
-//            "\nadvertisementData.localName: ${d.advertisementData.localName}" +
-//            "\nadvertisementData.serviceUuids: ${d.advertisementData.serviceUuids}"+
-//        "\nrssi: ${d.rssi}"+
-//        "\ndevice.id.: ${d.device.id.toString()}"+
-//        "\ndevice.id.id: ${d.device.id.id}"+
-//        "\ndevice.name: ${d.device.name}"
-//        );
-        return (d.advertisementData.localName.startsWith(DEVICE_NAME_START_WITH) || d.device.name.startsWith(DEVICE_NAME_START_WITH));
-      }).toList();
+      var rightList = list
+          .where((d) => (d.advertisementData.localName
+                  .startsWith(DEVICE_NAME_START_WITH) ||
+              d.device.name.startsWith(DEVICE_NAME_START_WITH)))
+          .toList();
       if (rightList.length == 0) {
         print('StatusPageBloc._scanDevice 没有在扫描结果中发现合适的设备');
       } else if (rightList.length == 1) {
@@ -143,9 +143,9 @@ class StatusPageBloc extends BaseBloc {
     });
   }
 
-  _connectDevice(BluetoothDevice device) {
+  _connectDevice(BluetoothDevice device) async {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
-    device.connect();
+    await device.connect();
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));
   }
@@ -168,6 +168,7 @@ enum Operate {
   _SCAN_DEVICE,
   // 连接设备, 该选项需要有参数
   CONNECT_DEVICE,
+  DISCONNECT_DEVICE,
   STOP_SCANNING,
 }
 
