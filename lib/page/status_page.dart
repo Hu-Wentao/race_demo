@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:race_demo/bloc/home_bloc.dart';
+import 'package:race_demo/util/util.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
@@ -112,7 +114,7 @@ class StatusPage extends StatelessWidget {
     switch (info.state) {
       case BleScanState.SCANNING:
         return RaisedButton(
-          child: Text("Scanning..."),
+          child: const Text("Scanning..."),
           onPressed: () {
             print('StatusPage._buildBtnBy 停止扫描...');
             inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
@@ -120,28 +122,33 @@ class StatusPage extends StatelessWidget {
         );
       case BleScanState.STOP_SCAN:
         return RaisedButton(
-            child: Text("Tap to Scan"),
+            child: const Text("Tap to Scan"),
             onPressed: () {
               print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
               inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
             });
       case BleScanState.CONNECTING:
         return RaisedButton(
-            child: Text("Connecting..."),
+            child: const Text("Connecting..."),
             onPressed: () {
               inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
             });
         break;
       case BleScanState.PLEASE_OPEN_BLE:
-        return Text(
+        const Text text = const Text(
           "Please Open Bluetooth",
           style: TextStyle(color: Colors.red),
         );
-        break;
+        return (Platform.isAndroid)
+            ? RaisedButton(
+                child: text,
+                onPressed: () => BleUtil.openBluetooth(),
+              )
+            : text;
       case BleScanState.PLEASE_SELECT_DEVICE:
         List<BluetoothDevice> deviceList = info.data;
         return RaisedButton(
-            child: Text("Please Tap To Select Device"),
+            child: const Text("Please Tap To Select Device"),
             onPressed: () {
               //todo 添加一个弹出框, 展示 list,
               print('StatusPage._buildBtnBy 此处应当弹出dialog, 手动选择设备');
@@ -163,10 +170,13 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-      // 发送给父类的bloc, 表示已连接到了设备
+        // 发送给父类的bloc, 表示已连接到了设备
         homeBloc.inAddConnectedDevice.add(info.data as BluetoothDevice);
-        return Text("${(info.data as BluetoothDevice).name}");
-        break;
+        return RaisedButton(
+          child: Text("${(info.data as BluetoothDevice).name}"),
+          onPressed: () => inBleOperator.add(BleOpInfo(
+              Operate.DISCONNECT_DEVICE, info.data as BluetoothDevice)),
+        );
     }
   }
 }

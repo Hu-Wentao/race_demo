@@ -143,7 +143,8 @@ class SettingsPage extends StatelessWidget {
                 value: snap.data.totalProgress,
               ),
               trailing: Text(
-                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+//                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+                "${(snap.data.phraseProgress * 100).toStringAsFixed(2)}%",
                 style: greyTextStyle,
               ),
             ),
