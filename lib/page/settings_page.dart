@@ -115,6 +115,7 @@ class SettingsPage extends StatelessWidget {
                   },
                 );
               }),
+          initiallyExpanded: true,
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
