@@ -2,6 +2,6 @@
 <Workspace
    version = "1.0">
    <FileRef
-      location = "group:Runner.xcodeproj">
+      location = "self:/Users/nzx/StudioProjects/master/race_demo/ios/Runner.xcodeproj">
    </FileRef>
 </Workspace>

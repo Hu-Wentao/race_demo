@@ -10,6 +10,8 @@ import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 
+
+
 class StatusPage extends StatelessWidget {
   final String title;
   final HomeBloc homeBloc;
@@ -60,6 +62,7 @@ class StatusPage extends StatelessWidget {
           stream: bloc.outGetBtnState,
           initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
+
             return _buildBtnBy(snapshot.data, bloc.inBleOperator);
           },
         ),
@@ -75,6 +78,9 @@ class StatusPage extends StatelessWidget {
 
   _buildPositionInformation(BuildContext context) {
     return <Widget>[
+      ListTile(
+        title: Text("Sats"),
+      ),
       ListTile(
         title: Text("Latitude"),
       ),
@@ -99,13 +105,10 @@ class StatusPage extends StatelessWidget {
   _buildPositionConfidence(BuildContext context) {
     return <Widget>[
       ListTile(
-        title: Text("Horizontal"),
+        title: Text("HDOP"),
       ),
       ListTile(
-        title: Text("Vertical"),
-      ),
-      ListTile(
-        title: Text("3D"),
+        title: Text("Position"),
       ),
     ];
   }

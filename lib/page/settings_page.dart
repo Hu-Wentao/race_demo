@@ -61,15 +61,15 @@ class SettingsPage extends StatelessWidget {
   }
 
   _buildSetSpeedUnit(BuildContext context) {
-    return ListTile(title: Text("test"));
+    return ListTile();
   }
 
   _buildSetAltitudeUnit(BuildContext context) {
-    return ListTile(title: Text("test"));
+    return ListTile();
   }
 
   _buildSetPositionStyle(BuildContext context) {
-    return ListTile(title: Text("test"));
+    return ListTile();
   }
 
   _buildUpgradeFirmware(

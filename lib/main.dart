@@ -23,7 +23,7 @@ class AppRedux extends StatelessWidget {
     return StoreProvider(
         store: store,
         child: MaterialApp(
-          title: "Race demo",
+          title: "RaceHF Bean",
           theme: ThemeData(
             primarySwatch: Colors.red,
           ),
