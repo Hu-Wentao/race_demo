@@ -84,10 +84,12 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        settingsBloc.inAddTimerCmd.add(snap.data.updatePhase == UpdatePhase.GET_FIRM);
+
+//        settingsBloc.inAddTimerCmd.add(snap.data.updatePhase == UpdatePhase.GET_FIRM);
         String updatePhaseMsg = "Null";
         switch (snap.data.updatePhase) {
           case UpdatePhase.GET_FIRM:
+            settingsBloc.inAddTimerCmd.add(true); // 开始计时
             updatePhaseMsg = "Downloading firm...";
             break;
           case UpdatePhase.REQUEST_MTU_PRIORITY:
@@ -98,6 +100,12 @@ class SettingsPage extends StatelessWidget {
             break;
           case UpdatePhase.RECEIVE_NOTIFY:
             updatePhaseMsg = "Sending Firmware...";
+            break;
+          case UpdatePhase.LISTENED_RESULT:
+            //todo 此处应显示 升级成功 或 升级失败.....................
+            updatePhaseMsg = "Sending Firmware...";
+
+            settingsBloc.inAddTimerCmd.add(false);  // 计时结束
             break;
         }
 
@@ -140,10 +148,11 @@ class SettingsPage extends StatelessWidget {
                 style: greyTextStyle,
               ),
               title: LinearProgressIndicator(
-                value: snap.data.totalProgress,
+                value: snap.data.sendFirmProgress,
               ),
               trailing: Text(
-                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+//                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+                "${(snap.data.phraseProgress * 100).toStringAsFixed(2)}%",
                 style: greyTextStyle,
               ),
             ),

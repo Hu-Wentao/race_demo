@@ -1,5 +1,3 @@
-// Copyright 2019/7/26, Hu-Wentao. All rights reserved.
-// Email: hu.wentao@outlook.com
 import 'dart:async';
 
 import 'package:flutter/widgets.dart';
@@ -291,10 +289,10 @@ class StoreProviderError extends Error {
   String toString() {
     return '''
     Error: No $type found. To fix, please try:
-       *使用StoreProvider<State>包装您的MaterialApp，
+       *使用StoreProvider<State>包装MaterialApp，
         而不是单独的路由
         
-        *向您的 Store<State> 提供完整的类型信息，
+        *向 Store<State> 提供完整的类型信息，
         StoreProvider<State>和StoreConnector<State, ViewModel>
         *确保使用一致和完整的导入。
       ''';
