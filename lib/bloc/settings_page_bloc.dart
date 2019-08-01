@@ -169,6 +169,9 @@ class SettingsPageBloc extends BaseBloc {
             break;
         }
         break;
+      case UpdatePhase.LISTENED_RESULT:
+        // TODO: Handle this case.
+        break;
     }
   }
 }

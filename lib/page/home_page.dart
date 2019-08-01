@@ -13,7 +13,7 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     final _homeBloc = BlocProvider.of<HomeBloc>(context);
     return CupertinoTabScaffold(
-        tabBar: CupertinoTabBar(
+    tabBar: CupertinoTabBar(
           items: [
             BottomNavigationBarItem(
                 icon: Icon(Icons.storage), title: Text("Status")),

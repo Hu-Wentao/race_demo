@@ -4,13 +4,15 @@ import 'dart:async';
 
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:race_demo/util/util.dart';
-
+import '../race_device.dart';
 import 'base_bloc.dart';
 
 //todo modify....................VVV.VVV.VVV....
 const String DEVICE_NAME_START_WITH = "Race_";
 
 class StatusPageBloc extends BaseBloc {
+  RaceDevice currentRaceDevice;
+
   @override
   void dispose() {
     _bleOperatorController.close();
@@ -62,6 +64,7 @@ class StatusPageBloc extends BaseBloc {
         break;
       case Operate.DISCONNECT_DEVICE:
         info.device.disconnect();
+        currentRaceDevice = null;
         _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
         break;
     }
@@ -143,7 +146,20 @@ class StatusPageBloc extends BaseBloc {
 
   _connectDevice(BluetoothDevice device) async {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
-    await device.connect();
+
+    device.connect();
+    currentRaceDevice = DeviceCc2640(device);
+
+
+
+//    BluetoothCharacteristic c = ((await currentRaceDevice.charMap)[DeviceCc2640.statusCharUuid]);
+//    c.value.listen((value){
+//
+//    });
+
+
+
+
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));
   }
