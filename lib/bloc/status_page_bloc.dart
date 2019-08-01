@@ -44,7 +44,6 @@ class StatusPageBloc extends BaseBloc {
 
   // 当监听到 StatusPage被build 事件输入时:
   void _onGetAction(BleOpInfo info) {
-    // 这里的action 表示的是 "StatusPage实例被创建", 这里的action 表示的是 "StatusPage实例被创建",
     switch (info.op) {
       case Operate.CHECK_OPEN_BLE:
         _checkAndOpenBle();
@@ -111,7 +110,7 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2)).then((_){
+    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 3)).then((_){
       _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
     });
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
@@ -149,16 +148,6 @@ class StatusPageBloc extends BaseBloc {
 
     device.connect();
     currentRaceDevice = DeviceCc2640(device);
-
-
-
-//    BluetoothCharacteristic c = ((await currentRaceDevice.charMap)[DeviceCc2640.statusCharUuid]);
-//    c.value.listen((value){
-//
-//    });
-
-
-
 
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));

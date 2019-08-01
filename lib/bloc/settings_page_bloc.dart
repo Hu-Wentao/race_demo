@@ -64,22 +64,28 @@ class SettingsPageBloc extends BaseBloc {
 
   // 计时器.................................................................................
   StreamController<bool> _timerCtrl = StreamController.broadcast();
+
   // 传入 true 表示 设置计时起点, 传入 false, 表示发送 当前时间-计时起点 的值
   StreamSink<bool> get inAddTimerCmd => _timerCtrl.sink;
+
   Stream<bool> get _outTimeCmd => _timerCtrl.stream;
 
   StreamController<int> _timeCtrl = StreamController.broadcast();
+
   StreamSink<int> get _inAddCurrentUpdateTime => _timeCtrl.sink;
+
   Stream<int> get outCurrentTime => _timeCtrl.stream;
+
   SettingsPageBloc() {
     _outOadCmd.listen((device) => _oadFlow(device));
     _outGetUpdateCmd.listen((updateCmd) => _exeUpdateCmd(updateCmd));
 
     _outTimeCmd.listen((start) {
-      if(start){
+      if (start) {
         updateStartTime = DateTime.now().millisecondsSinceEpoch;
-      }else{
-      _inAddCurrentUpdateTime.add(DateTime.now().millisecondsSinceEpoch-updateStartTime);
+      } else {
+        _inAddCurrentUpdateTime
+            .add(DateTime.now().millisecondsSinceEpoch - updateStartTime);
       }
     });
   }
@@ -120,7 +126,8 @@ class SettingsPageBloc extends BaseBloc {
         ]);
 
         await Future.delayed(const Duration(seconds: 1));
-        print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0,16)}');
+        print(
+            'SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
@@ -176,6 +183,7 @@ class UpdateProgressInfo {
   final double phraseProgress;
 
   double get totalProgress {
+
     switch (updatePhase) {
       case UpdatePhase.GET_FIRM:
         return phraseProgress * 0.03;
@@ -203,19 +211,12 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD1_128_CRC.bin";
+  const String firmwareName = "app_OAD1_128_our_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =
       "https://file.racehf.com/RaceHF_Bean/bean_latest.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
-//      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_16.bin";
-
-//  "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32.bin";
-//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32.bin";
-
-//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_32_CRC.bin";
-//   "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD2_32_CRC.bin";
   Directory dir = await getApplicationDocumentsDirectory();
   File f = new File(dir.path + "/$firmwareName");
   if (!await f.exists() || firmwareName == "from_net.bin") {
@@ -225,7 +226,6 @@ Future<File> _getFirmwareFromFile() async {
   return new File(dir.path + "/$firmwareName");
 }
 
-///
 /// 将二进制文件转换成 二维列表
 Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<int> content = await (await f).readAsBytes();
