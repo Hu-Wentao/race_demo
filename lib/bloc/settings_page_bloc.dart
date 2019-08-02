@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:race_demo/provider/oad_state.dart';
 
 import '../race_device.dart';
 import 'base_bloc.dart';
@@ -106,26 +107,28 @@ class SettingsPageBloc extends BaseBloc {
 
     currentRaceDevice = DeviceCc2640(device);
 
-    _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.GET_FIRM));
+    _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.GET_FIRM));
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
-    if (updateCmd.updatePhase != UpdatePhase.RECEIVE_NOTIFY) {
+    if (updateCmd.updatePhase != OadPhase.RECEIVE_NOTIFY) {
       _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
     }
     switch (updateCmd.updatePhase) {
-      case UpdatePhase.GET_FIRM:
+      case OadPhase.UN_OAD:
+        break;
+      case OadPhase.GET_FIRM:
         binContent = await _getByteList(_getFirmwareFromFile());
-        _inAddUpdateCmd.add(UpdateCtrlCmd(UpdatePhase.REQUEST_MTU_PRIORITY));
+        _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY));
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////
-      case UpdatePhase.REQUEST_MTU_PRIORITY:
+      case OadPhase.REQUEST_MTU_PRIORITY:
         currentRaceDevice.requestMtuAndPriority(
             mtu: 251, priority: ConnectionPriority.high);
         _inAddUpdateCmd
-            .add(UpdateCtrlCmd(UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD));
+            .add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
-      case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
+      case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
         await currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
@@ -138,7 +141,7 @@ class SettingsPageBloc extends BaseBloc {
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
-      case UpdatePhase.RECEIVE_NOTIFY:
+      case OadPhase.RECEIVE_NOTIFY:
         NotifyInfo notifyInfo = updateCmd.notifyInfo;
         print(
             'SettingsPageBloc._exeUpdateCmd 监听到 ${notifyInfo.char.uuid.toString()} 消息: ${notifyInfo.notifyValue}');
@@ -158,29 +161,30 @@ class SettingsPageBloc extends BaseBloc {
             notifyInfo.char
                 .write(value + binContent[index], withoutResponse: true);
             _inShowUpdateProgress.add(UpdateProgressInfo(
-                UpdatePhase.RECEIVE_NOTIFY,
+                OadPhase.RECEIVE_NOTIFY,
                 phraseProgress: index / binContent.length));
             break;
           case DeviceCc2640.statusCharUuid:
-            isUpdating = false;
-            print(
-                'SettingsPageBloc._oadNotify 监听到ffc4: ${notifyInfo.notifyValue}');
-            _inShowUpdateProgress.add(UpdateProgressInfo(
-                UpdatePhase.RECEIVE_NOTIFY,
-                phraseProgress: 1));
+            _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT, notifyInfo: notifyInfo));
             break;
+
         }
         break;
-      case UpdatePhase.LISTENED_RESULT:
-        // TODO: Handle this case.
-
+      case OadPhase.LISTENED_RESULT:
+        isUpdating = false;
+        print(
+            'SettingsPageBloc._oadNotify 监听到ffc4: ${updateCmd.notifyInfo.notifyValue}');
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+            OadPhase.RECEIVE_NOTIFY,
+            //todo  此处应该显示最终结果等....... 成功 或 失败
+            phraseProgress: 1));
         break;
     }
   }
 }
 
 class UpdateCtrlCmd {
-  final UpdatePhase updatePhase;
+  final OadPhase updatePhase;
   final NotifyInfo notifyInfo;
 
   UpdateCtrlCmd(
@@ -190,25 +194,19 @@ class UpdateCtrlCmd {
 }
 
 class UpdateProgressInfo {
-  final UpdatePhase updatePhase;
+  final OadPhase oadPhase;
   final double phraseProgress;
 
   double get sendFirmProgress =>
-      (updatePhase == UpdatePhase.RECEIVE_NOTIFY) ? phraseProgress : null;
+      (oadPhase == OadPhase.RECEIVE_NOTIFY) ? phraseProgress : null;
 
   UpdateProgressInfo(
-    this.updatePhase, {
+    this.oadPhase, {
     this.phraseProgress: 0,
   });
 }
 
-enum UpdatePhase {
-  GET_FIRM, // 3%
-  REQUEST_MTU_PRIORITY, // 1%
-  LISTEN_CHARA_AND_SEND_HEAD, // 1%
-  RECEIVE_NOTIFY, // 95%
-  LISTENED_RESULT, // 收到ffc4的消息
-}
+
 
 Future<File> _getFirmwareFromFile() async {
   const String firmwareName = "app_OAD2_128_CRC.bin";
