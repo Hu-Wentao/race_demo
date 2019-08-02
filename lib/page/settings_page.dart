@@ -122,7 +122,6 @@ class SettingsPage extends StatelessWidget {
                 child: RaisedButton(
                     child: Text("Check for updates"),
                     onPressed: () {
-                      // todo 这里弹出窗口, 检查更新
                       _checkAndUpdateFirmware(device, settingsBloc.inAddOadCmd);
                     }),
               );
@@ -149,7 +148,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ListTile(
               leading: Text(
-                "Total\nProgress",
+                "Oad Progress",
                 textAlign: TextAlign.center,
                 style: greyTextStyle,
               ),
@@ -180,7 +179,7 @@ class SettingsPage extends StatelessWidget {
       BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
     print(
         'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
-    // TODO 检查固件版本
+    // todo 这里弹出窗口, 检查更新
     // 升级固件流程
     inAddOadCmd.add(device);
   }
