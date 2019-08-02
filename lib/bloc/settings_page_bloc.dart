@@ -18,17 +18,20 @@ class SettingsPageBloc extends BaseBloc {
   List<List<int>> binContent;
 
   int updateStartTime = 0;
+  Timer timer;
 
   @override
   void dispose() {
+    // 让设置Page 获取到 Device
     _transportDevice.close();
+    // 触发 OAD 事件     // 控制OAD的流程     // 向page展示当前的进度
     _oadCtrl.close();
-    _updateFirmware.close();
     _updateControl.close();
+    _updateFirmware.close();
 
-    // 计时器
+    // 触发 计时器 事件     // 向Page发送计时数据
     _timerCtrl.close();
-    _timeCtrl.close();
+    _timeDataCtrl.close();
   }
 
   // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用redux取代
@@ -64,17 +67,15 @@ class SettingsPageBloc extends BaseBloc {
 
   // 计时器.................................................................................
   StreamController<bool> _timerCtrl = StreamController.broadcast();
-
   // 传入 true 表示 设置计时起点, 传入 false, 表示发送 当前时间-计时起点 的值
   StreamSink<bool> get inAddTimerCmd => _timerCtrl.sink;
-
   Stream<bool> get _outTimeCmd => _timerCtrl.stream;
 
-  StreamController<int> _timeCtrl = StreamController.broadcast();
+  StreamController<int> _timeDataCtrl = StreamController.broadcast();
 
-  StreamSink<int> get _inAddCurrentUpdateTime => _timeCtrl.sink;
+  StreamSink<int> get _inAddCurrentUpdateTime => _timeDataCtrl.sink;
 
-  Stream<int> get outCurrentTime => _timeCtrl.stream;
+  Stream<int> get outCurrentTime => _timeDataCtrl.stream;
 
   SettingsPageBloc() {
     _outOadCmd.listen((device) => _oadFlow(device));
@@ -83,9 +84,13 @@ class SettingsPageBloc extends BaseBloc {
     _outTimeCmd.listen((start) {
       if (start) {
         updateStartTime = DateTime.now().millisecondsSinceEpoch;
+
+        timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          _inAddCurrentUpdateTime
+              .add(DateTime.now().millisecondsSinceEpoch - updateStartTime);
+        });
       } else {
-        _inAddCurrentUpdateTime
-            .add(DateTime.now().millisecondsSinceEpoch - updateStartTime);
+        timer.cancel();
       }
     });
   }
@@ -126,8 +131,7 @@ class SettingsPageBloc extends BaseBloc {
         ]);
 
         await Future.delayed(const Duration(seconds: 1));
-        print(
-            'SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
+        print('SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0,16)}');
         (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
@@ -164,6 +168,10 @@ class SettingsPageBloc extends BaseBloc {
             break;
         }
         break;
+      case UpdatePhase.LISTENED_RESULT:
+        // TODO: Handle this case.
+
+        break;
     }
   }
 }
@@ -182,20 +190,8 @@ class UpdateProgressInfo {
   final UpdatePhase updatePhase;
   final double phraseProgress;
 
-  double get totalProgress {
-
-    switch (updatePhase) {
-      case UpdatePhase.GET_FIRM:
-        return phraseProgress * 0.03;
-      case UpdatePhase.REQUEST_MTU_PRIORITY:
-        return phraseProgress * 0.01 + 0.03;
-      case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-        return phraseProgress * 0.01 + 0.04;
-      case UpdatePhase.RECEIVE_NOTIFY:
-        return phraseProgress * 0.95 + 0.05;
-    }
-    return 0;
-  }
+  double get sendFirmProgress =>
+      (updatePhase == UpdatePhase.RECEIVE_NOTIFY) ? phraseProgress : null;
 
   UpdateProgressInfo(
     this.updatePhase, {
@@ -208,10 +204,11 @@ enum UpdatePhase {
   REQUEST_MTU_PRIORITY, // 1%
   LISTEN_CHARA_AND_SEND_HEAD, // 1%
   RECEIVE_NOTIFY, // 95%
+  LISTENED_RESULT, // 收到ffc4的消息
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD1_128_our_CRC.bin";
+  const String firmwareName = "app_OAD2_128_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =

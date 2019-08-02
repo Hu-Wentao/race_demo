@@ -11,10 +11,10 @@ import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
-  final String title;
   final HomeBloc homeBloc;
+//  final Key checkUpdateBtnKey = const ValueKey("checkUpdateBtnKey");
 
-  const SettingsPage(this.homeBloc, {Key key, this.title}) : super(key: key);
+  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +22,7 @@ class SettingsPage extends StatelessWidget {
         BlocProvider.of<SettingsPageBloc>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(this.title),
+        title: Text("Settings"),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 48),
@@ -85,10 +85,10 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        settingsBloc.inAddTimerCmd.add(snap.data.updatePhase == UpdatePhase.GET_FIRM);
         String updatePhaseMsg = "Null";
         switch (snap.data.updatePhase) {
           case UpdatePhase.GET_FIRM:
+            settingsBloc.inAddTimerCmd.add(true); // 开始计时
             updatePhaseMsg = "Downloading firm...";
             break;
           case UpdatePhase.REQUEST_MTU_PRIORITY:
@@ -100,6 +100,11 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.RECEIVE_NOTIFY:
             updatePhaseMsg = "Sending Firmware...";
             break;
+          case UpdatePhase.LISTENED_RESULT:
+            //todo 此处应显示 升级成功 或 升级失败.....................
+            updatePhaseMsg = "Receive Result";
+            settingsBloc.inAddTimerCmd.add(false);  // 计时结束
+            break;
         }
 
         return NoneBorderColorExpansionTile(
@@ -107,12 +112,16 @@ class SettingsPage extends StatelessWidget {
           trailing: StreamBuilder<BluetoothDevice>(
               stream: homeBloc.outGetConnectedDevice,
               builder: (context, snap) {
-                return RaisedButton(
-                  child: Text("Check for updates"),
-                  onPressed: () {
-                    _checkAndUpdateFirmware(
-                        snap.data, settingsBloc.inAddOadCmd);
-                  },
+                return Offstage(
+                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
+                  offstage: false,
+                  child: RaisedButton(
+                    child: Text("Check for updates"),
+                    onPressed: () {
+                      _checkAndUpdateFirmware(
+                          snap.data, settingsBloc.inAddOadCmd);
+                    },
+                  ),
                 );
               }),
           initiallyExpanded: true,
@@ -142,10 +151,10 @@ class SettingsPage extends StatelessWidget {
                 style: greyTextStyle,
               ),
               title: LinearProgressIndicator(
-                value: snap.data.totalProgress,
+                value: snap.data.sendFirmProgress,
               ),
               trailing: Text(
-                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
+                "${(snap.data.phraseProgress * 100).toStringAsFixed(2)}%",
                 style: greyTextStyle,
               ),
             ),
