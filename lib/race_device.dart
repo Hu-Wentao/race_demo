@@ -2,6 +2,7 @@
 // Email: hu.wentao@outlook.com
 import 'dart:io';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:race_demo/provider/oad_state.dart';
 import 'dart:async';
 
 import 'bloc/settings_page_bloc.dart';
@@ -79,7 +80,7 @@ class DeviceCc2640 extends RaceDevice {
       (await charMap)[charUuidList[i]].setNotifyValue(true);   // 库 存在问题......., setNotifyValue() 无法等待获取返回值
 
       (await charMap)[charUuidList[i]].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
-          UpdatePhase.RECEIVE_NOTIFY,
+          OadPhase.RECEIVE_NOTIFY,
           notifyInfo: NotifyInfo(((_charMap)[charUuidList[i]]), notify))));
       print('DeviceCc2640.openAndListenCharNotify ${DateTime.now().toIso8601String()} ### test 成功打开 ${charUuidList[i]} 的通知');
     }

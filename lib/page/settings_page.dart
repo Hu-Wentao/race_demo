@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
-import 'package:race_demo/bloc/home_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
 import 'package:race_demo/provider/app_state.dart';
+import 'package:race_demo/provider/oad_state.dart';
 import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
@@ -84,55 +84,50 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        String updatePhaseMsg = "Null";
-        switch (snap.data.updatePhase) {
-          case UpdatePhase.GET_FIRM:
+        String oadPhaseMsg = "Null";
+        switch (snap.data.oadPhase) {
+          case OadPhase.UN_OAD:
+            break;
+          case OadPhase.GET_FIRM:
             settingsBloc.inAddTimerCmd.add(true); // 开始计时
-            updatePhaseMsg = "Downloading firm...";
+            oadPhaseMsg = "Downloading firm...";
             break;
-          case UpdatePhase.REQUEST_MTU_PRIORITY:
-            updatePhaseMsg = "Request MTU & Priority...";
+          case OadPhase.REQUEST_MTU_PRIORITY:
+            oadPhaseMsg = "Request MTU & Priority...";
             break;
-          case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-            updatePhaseMsg = "Open characteristic notify...";
+          case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
+            oadPhaseMsg = "Open characteristic notify...";
             break;
-          case UpdatePhase.RECEIVE_NOTIFY:
-            updatePhaseMsg = "Sending Firmware...";
+          case OadPhase.RECEIVE_NOTIFY:
+            oadPhaseMsg = "Sending Firmware...";
             break;
-          case UpdatePhase.LISTENED_RESULT:
+          case OadPhase.LISTENED_RESULT:
             //todo 此处应显示 升级成功 或 升级失败.....................
-            updatePhaseMsg = "Receive Result";
+            oadPhaseMsg = "Receive Result";
             settingsBloc.inAddTimerCmd.add(false); // 计时结束
             break;
         }
+
+//        var appState = Provider.of<AppState>(context);
 
         return NoneBorderColorExpansionTile(
           title: Text("Upgrade Firmware"),
           trailing: Consumer<AppState>(
             builder: (context, appState, _) {
-              return RaisedButton(
-                  child: Text("Check for updates"),
-                  onPressed: () {
-                    _checkAndUpdateFirmware(
-                        appState.currentDevice, settingsBloc.inAddOadCmd);
-                  });
+              var oadState = appState.currentOadState;
+              var device = appState.currentDevice;
+
+              return Offstage(
+                offstage: oadState.isOad || device == null,
+                child: RaisedButton(
+                    child: Text("Check for updates"),
+                    onPressed: () {
+                      // todo 这里弹出窗口, 检查更新
+                      _checkAndUpdateFirmware(device, settingsBloc.inAddOadCmd);
+                    }),
+              );
             },
           ),
-//          trailing: StreamBuilder<BluetoothDevice>(
-//              stream: homeBloc.outGetConnectedDevice,
-//              builder: (context, snap) {
-//                return Offstage(
-//                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
-//                  offstage: false,
-//                  child: RaisedButton(
-//                    child: Text("Check for updates"),
-//                    onPressed: () {
-//                      _checkAndUpdateFirmware(
-//                          snap.data, settingsBloc.inAddOadCmd);
-//                    },
-//                  ),
-//                );
-//              }),
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -145,7 +140,7 @@ class SettingsPage extends StatelessWidget {
                     softWrap: true,
                   ),
                   Text(
-                    updatePhaseMsg,
+                    oadPhaseMsg,
                     style: greyTextStyle,
                     softWrap: true,
                   ),

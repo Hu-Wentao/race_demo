@@ -7,14 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:race_demo/race_device.dart';
 
+import 'oad_state.dart';
+
 class AppState with ChangeNotifier {
+  OadState currentOadState;
+
   RaceDevice _raceDevice;
   ThemeData _themeData = ThemeData.light();
 
   get currentDevice => _raceDevice;
 
   setCurrentDevice({BluetoothDevice device}) {
-    this._raceDevice = device == null ? null : DeviceCc2640(device);
+    if(device == null){
+      currentOadState.setCurrentOadPhase(OadPhase.UN_OAD);
+      _raceDevice = null;
+    }else{
+      _raceDevice = DeviceCc2640(device);
+    }
     notifyListeners();
   }
 
