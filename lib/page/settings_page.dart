@@ -113,7 +113,7 @@ class SettingsPage extends StatelessWidget {
               builder: (context, snap) {
                 return Offstage(
                   // todo 这里应当使用一个流, 或者使用 redux来管理......................
-                  offstage: ,
+                  offstage: false,
                   child: RaisedButton(
                     child: Text("Check for updates"),
                     onPressed: () {

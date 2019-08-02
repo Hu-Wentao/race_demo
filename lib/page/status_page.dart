@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:race_demo/bloc/home_bloc.dart';
-import 'package:race_demo/util/util.dart';
+import 'package:race_demo/utils/ble_util.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';

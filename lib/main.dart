@@ -1,28 +1,19 @@
 // Copyright 2019/7/26, Hu-Wentao. All rights reserved.
 // Email: hu.wentao@outlook.com
 import 'package:flutter/material.dart';
-import 'package:flutter_redux/flutter_redux.dart';
-import 'package:race_demo/redux/redux_app_state.dart';
-import 'package:redux/redux.dart';
-import 'package:race_demo/redux/redux_app_reducer.dart';
-
 import 'bloc/base_bloc.dart';
 import 'bloc/home_bloc.dart';
 import 'page/home_page.dart';
 
 void main() {
-  runApp(AppRedux());
+  runApp(MainApp());
 }
 
-class AppRedux extends StatelessWidget {
-  final Store<ReduxAppState> store =
-  Store<ReduxAppState>(appReducer, initialState: ReduxAppState.initState());
+class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return StoreProvider(
-        store: store,
-        child: MaterialApp(
+    return MaterialApp(
           title: "RaceHF Bean",
           theme: ThemeData(
             primarySwatch: Colors.red,
@@ -31,7 +22,7 @@ class AppRedux extends StatelessWidget {
             bloc: HomeBloc(),
             child: HomePage(),
           ),
-        ));
+        );
   }
 }
 

@@ -3,7 +3,7 @@
 import 'dart:async';
 
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:race_demo/util/util.dart';
+import 'package:race_demo/utils/ble_util.dart';
 import '../race_device.dart';
 import 'base_bloc.dart';
 
