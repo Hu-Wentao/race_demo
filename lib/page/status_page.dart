@@ -13,10 +13,9 @@ import 'package:race_demo/bloc/base_bloc.dart';
 
 
 class StatusPage extends StatelessWidget {
-  final String title;
   final HomeBloc homeBloc;
 
-  const StatusPage(this.homeBloc, {Key key, this.title}) : super(key: key);
+  const StatusPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +26,7 @@ class StatusPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(this.title),
+        title: Text("Status"),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(4, 4, 4, 48),

@@ -22,12 +22,14 @@ class SettingsPageBloc extends BaseBloc {
 
   @override
   void dispose() {
+    // 让设置Page 获取到 Device
     _transportDevice.close();
+    // 触发 OAD 事件     // 控制OAD的流程     // 向page展示当前的进度
     _oadCtrl.close();
-    _updateFirmware.close();
     _updateControl.close();
+    _updateFirmware.close();
 
-    // 计时器
+    // 触发 计时器 事件     // 向Page发送计时数据
     _timerCtrl.close();
     _timeDataCtrl.close();
   }
@@ -85,7 +87,7 @@ class SettingsPageBloc extends BaseBloc {
       if (start) {
         updateStartTime = DateTime.now().millisecondsSinceEpoch;
 
-        timer = Timer.periodic(const Duration(seconds: 1),  (timer){
+        timer = Timer.periodic(const Duration(seconds: 1), (timer) {
           _inAddCurrentUpdateTime
               .add(DateTime.now().millisecondsSinceEpoch - updateStartTime);
         });
@@ -171,6 +173,7 @@ class SettingsPageBloc extends BaseBloc {
         break;
       case UpdatePhase.LISTENED_RESULT:
         // TODO: Handle this case.
+
         break;
     }
   }
@@ -204,7 +207,7 @@ enum UpdatePhase {
   REQUEST_MTU_PRIORITY, // 1%
   LISTEN_CHARA_AND_SEND_HEAD, // 1%
   RECEIVE_NOTIFY, // 95%
-  LISTENED_RESULT,  // 收到ffc4的消息
+  LISTENED_RESULT, // 收到ffc4的消息
 }
 
 Future<File> _getFirmwareFromFile() async {

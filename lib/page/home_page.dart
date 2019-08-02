@@ -28,7 +28,6 @@ class HomePage extends StatelessWidget {
                 bloc: StatusPageBloc(),
                 child: StatusPage(
                   _homeBloc,
-                  title: "Status",
                 ),
               );
               break;
@@ -37,7 +36,6 @@ class HomePage extends StatelessWidget {
                 bloc: SettingsPageBloc(),
                 child: SettingsPage(
                   _homeBloc,
-                  title: "Settings",
                 ),
               );
               break;

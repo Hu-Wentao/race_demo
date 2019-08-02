@@ -10,10 +10,10 @@ import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
-  final String title;
   final HomeBloc homeBloc;
+//  final Key checkUpdateBtnKey = const ValueKey("checkUpdateBtnKey");
 
-  const SettingsPage(this.homeBloc, {Key key, this.title}) : super(key: key);
+  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class SettingsPage extends StatelessWidget {
         BlocProvider.of<SettingsPageBloc>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(this.title),
+        title: Text("Settings"),
       ),
       body: Padding(
         padding: const EdgeInsets.fromLTRB(0, 0, 0, 48),
@@ -111,12 +111,16 @@ class SettingsPage extends StatelessWidget {
           trailing: StreamBuilder<BluetoothDevice>(
               stream: homeBloc.outGetConnectedDevice,
               builder: (context, snap) {
-                return RaisedButton(
-                  child: Text("Check for updates"),
-                  onPressed: () {
-                    _checkAndUpdateFirmware(
-                        snap.data, settingsBloc.inAddOadCmd);
-                  },
+                return Offstage(
+                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
+                  offstage: ,
+                  child: RaisedButton(
+                    child: Text("Check for updates"),
+                    onPressed: () {
+                      _checkAndUpdateFirmware(
+                          snap.data, settingsBloc.inAddOadCmd);
+                    },
+                  ),
                 );
               }),
           children: <Widget>[
@@ -148,7 +152,6 @@ class SettingsPage extends StatelessWidget {
                 value: snap.data.sendFirmProgress,
               ),
               trailing: Text(
-//                "${(snap.data.totalProgress * 100).toStringAsFixed(2)}%",
                 "${(snap.data.phraseProgress * 100).toStringAsFixed(2)}%",
                 style: greyTextStyle,
               ),
