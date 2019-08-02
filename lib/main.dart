@@ -1,29 +1,24 @@
 // Copyright 2019/7/26, Hu-Wentao. All rights reserved.
 // Email: hu.wentao@outlook.com
 import 'package:flutter/material.dart';
-import 'bloc/base_bloc.dart';
-import 'bloc/home_bloc.dart';
+import 'package:provider/provider.dart';
+import 'package:race_demo/provider/app_state.dart';
 import 'page/home_page.dart';
 
-void main() {
-  runApp(MainApp());
-}
+main() => runApp(ChangeNotifierProvider(
+      builder: (context) => AppState(),
+      child: MainApp(),
+    ));
 
 class MainApp extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-          title: "RaceHF Bean",
-          theme: ThemeData(
-            primarySwatch: Colors.red,
-          ),
-          home: BlocProvider<HomeBloc>(
-            bloc: HomeBloc(),
-            child: HomePage(),
-          ),
-        );
+      title: "RaceHF Bean",
+      theme: ThemeData(
+        primarySwatch: Colors.red,
+      ),
+      home: HomePage(),
+    );
   }
 }
-
-

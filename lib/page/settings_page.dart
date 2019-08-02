@@ -2,18 +2,20 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:provider/provider.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 import 'package:race_demo/bloc/home_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
+import 'package:race_demo/provider/app_state.dart';
 import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
-  final HomeBloc homeBloc;
+//  final HomeBloc homeBloc;
 //  final Key checkUpdateBtnKey = const ValueKey("checkUpdateBtnKey");
 
-  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
+  const SettingsPage({Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +51,8 @@ class SettingsPage extends StatelessWidget {
               TextDivider(
                 "About device",
               ),
-
               RadiusContainer(
-                child: _buildUpgradeFirmware(context, homeBloc, _settingsBloc),
+                child: _buildUpgradeFirmware(context, _settingsBloc),
               ),
             ],
           ),
@@ -72,8 +73,7 @@ class SettingsPage extends StatelessWidget {
     return ListTile();
   }
 
-  _buildUpgradeFirmware(
-      BuildContext context, HomeBloc homeBloc, SettingsPageBloc settingsBloc) {
+  _buildUpgradeFirmware(BuildContext context, SettingsPageBloc settingsBloc) {
     final greyTextStyle =
         TextStyle(color: Theme.of(context).textTheme.caption.color);
 
@@ -102,27 +102,37 @@ class SettingsPage extends StatelessWidget {
           case UpdatePhase.LISTENED_RESULT:
             //todo 此处应显示 升级成功 或 升级失败.....................
             updatePhaseMsg = "Receive Result";
-            settingsBloc.inAddTimerCmd.add(false);  // 计时结束
+            settingsBloc.inAddTimerCmd.add(false); // 计时结束
             break;
         }
 
         return NoneBorderColorExpansionTile(
           title: Text("Upgrade Firmware"),
-          trailing: StreamBuilder<BluetoothDevice>(
-              stream: homeBloc.outGetConnectedDevice,
-              builder: (context, snap) {
-                return Offstage(
-                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
-                  offstage: false,
-                  child: RaisedButton(
-                    child: Text("Check for updates"),
-                    onPressed: () {
-                      _checkAndUpdateFirmware(
-                          snap.data, settingsBloc.inAddOadCmd);
-                    },
-                  ),
-                );
-              }),
+          trailing: Consumer<AppState>(
+            builder: (context, appState, _) {
+              return RaisedButton(
+                  child: Text("Check for updates"),
+                  onPressed: () {
+                    _checkAndUpdateFirmware(
+                        appState.currentDevice, settingsBloc.inAddOadCmd);
+                  });
+            },
+          ),
+//          trailing: StreamBuilder<BluetoothDevice>(
+//              stream: homeBloc.outGetConnectedDevice,
+//              builder: (context, snap) {
+//                return Offstage(
+//                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
+//                  offstage: false,
+//                  child: RaisedButton(
+//                    child: Text("Check for updates"),
+//                    onPressed: () {
+//                      _checkAndUpdateFirmware(
+//                          snap.data, settingsBloc.inAddOadCmd);
+//                    },
+//                  ),
+//                );
+//              }),
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -162,7 +172,7 @@ class SettingsPage extends StatelessWidget {
               initialData: 0,
               builder: (context, snap) => Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 8, 8),
-                child: Text("${snap.data/1000} sec"),
+                child: Text("${snap.data / 1000} sec"),
               ),
             ),
           ],
