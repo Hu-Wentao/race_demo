@@ -208,8 +208,8 @@ enum UpdatePhase {
 }
 
 Future<File> _getFirmwareFromFile() async {
-//  const String firmwareName = "app_OAD2_128_CRC.bin";
-  const String firmwareName = "from_net.bin";
+  const String firmwareName = "app_OAD2_128_CRC.bin";
+//  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =
       "https://file.racehf.com/RaceHF_Bean/bean_latest.bin";

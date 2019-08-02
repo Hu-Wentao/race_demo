@@ -84,8 +84,6 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-
-//        settingsBloc.inAddTimerCmd.add(snap.data.updatePhase == UpdatePhase.GET_FIRM);
         String updatePhaseMsg = "Null";
         switch (snap.data.updatePhase) {
           case UpdatePhase.GET_FIRM:
@@ -103,8 +101,7 @@ class SettingsPage extends StatelessWidget {
             break;
           case UpdatePhase.LISTENED_RESULT:
             //todo 此处应显示 升级成功 或 升级失败.....................
-            updatePhaseMsg = "Sending Firmware...";
-
+            updatePhaseMsg = "Receive Result";
             settingsBloc.inAddTimerCmd.add(false);  // 计时结束
             break;
         }
