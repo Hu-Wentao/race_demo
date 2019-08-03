@@ -75,7 +75,7 @@ class DeviceCc2640 extends RaceDevice {
 
 
       // 无法省略...
-      await Future.delayed(const Duration(milliseconds: 700));
+      await Future.delayed(const Duration(milliseconds: 600));
 
       (await charMap)[charUuidList[i]].setNotifyValue(true);   // 库 存在问题......., setNotifyValue() 无法等待获取返回值
 

@@ -111,28 +111,48 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
-    if (updateCmd.updatePhase != OadPhase.RECEIVE_NOTIFY) {
-      _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
-    }
+//    if (updateCmd.updatePhase != OadPhase.RECEIVE_NOTIFY) {
+//      _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
+//    }
     switch (updateCmd.updatePhase) {
       case OadPhase.UN_OAD:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+            updateCmd.updatePhase, "Not in oad",
+            phraseProgress: 0));
         print("当前不处于OAD状态, 本提示被打印代表程序逻辑出错########");
         return;
       case OadPhase.CHECK_VERSION:
-      // TODO: 检查固件版本, 然后直接返回到...... 待考虑....
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+          updateCmd.updatePhase,
+          "Checking version...",
+        ));
+        // TODO: 检查固件版本, 然后直接返回到...... 待考虑....
         break;
       case OadPhase.GET_FIRM:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+          updateCmd.updatePhase,
+          "Downloading frimware...",
+        ));
+
         binContent = await _getByteList(_getFirmwareFromFile());
         _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY));
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////
       case OadPhase.REQUEST_MTU_PRIORITY:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+          updateCmd.updatePhase,
+          "Request MTU & Priority...",
+        ));
         currentRaceDevice.requestMtuAndPriority(
             mtu: 200, priority: ConnectionPriority.high);
-        _inAddUpdateCmd
-            .add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
+        _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
       case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+          updateCmd.updatePhase,
+          "Open notify...",
+        ));
+
         await currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
@@ -146,6 +166,10 @@ class SettingsPageBloc extends BaseBloc {
             .write(binContent[0], withoutResponse: true);
         break;
       case OadPhase.RECEIVE_NOTIFY:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+            updateCmd.updatePhase, "Sending Firmware...",
+            phraseProgress: 0));
+
         NotifyInfo notifyInfo = updateCmd.notifyInfo;
         print(
             'SettingsPageBloc._exeUpdateCmd 监听到 ${notifyInfo.char.uuid.toString()} 消息: ${notifyInfo.notifyValue}');
@@ -165,25 +189,30 @@ class SettingsPageBloc extends BaseBloc {
             notifyInfo.char
                 .write(value + binContent[index], withoutResponse: true);
             _inShowUpdateProgress.add(UpdateProgressInfo(
-                OadPhase.RECEIVE_NOTIFY,
+                OadPhase.RECEIVE_NOTIFY, "Sending Firmware...",
                 phraseProgress: index / binContent.length));
             break;
           case DeviceCc2640.statusCharUuid:
-            _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT, notifyInfo: notifyInfo));
+            _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT,
+                notifyInfo: notifyInfo));
             break;
-
         }
         break;
       case OadPhase.LISTENED_RESULT:
         isUpdating = false;
-        print(
-            'SettingsPageBloc._oadNotify 监听到ffc4: ${updateCmd.notifyInfo.notifyValue}');
+        var msg = const [
+          "Success!",
+          "CRC error!",
+          "Flash error!",
+          "Buffer error!",
+        ][updateCmd.notifyInfo.notifyValue[0]];
+
+        print('SettingsPageBloc._oadNotify 监听到ffc4: $msg');
+
         _inShowUpdateProgress.add(UpdateProgressInfo(
-            OadPhase.RECEIVE_NOTIFY,
-            //todo  此处应该显示最终结果等....... 成功 或 失败
+            OadPhase.RECEIVE_NOTIFY, msg,
             phraseProgress: 1));
         break;
-
     }
   }
 }
@@ -200,18 +229,18 @@ class UpdateCtrlCmd {
 
 class UpdateProgressInfo {
   final OadPhase oadPhase;
+  final String phaseMsg;
   final double phraseProgress;
 
   double get sendFirmProgress =>
       (oadPhase == OadPhase.RECEIVE_NOTIFY) ? phraseProgress : null;
 
   UpdateProgressInfo(
-    this.oadPhase, {
+    this.oadPhase,
+    this.phaseMsg, {
     this.phraseProgress: 0,
   });
 }
-
-
 
 Future<File> _getFirmwareFromFile() async {
   const String firmwareName = "app_OAD1_128_our_CRC.bin";
