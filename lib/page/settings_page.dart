@@ -114,8 +114,6 @@ class SettingsPage extends StatelessWidget {
             break;
         }
 
-//        var appState = Provider.of<AppState>(context);
-
         var tile = NoneBorderColorExpansionTile(
           // todo  .................. 在这里添加点击事件, (包裹一个可点击的控件等)方式, 以控制面板的自动开启与关闭
           title: Text("Upgrade Firmware"),
@@ -124,15 +122,15 @@ class SettingsPage extends StatelessWidget {
               var oadState = appState.currentOadState;
               var device = appState.currentDevice;
 
-              return Offstage(
-                offstage: oadState.isOad || device == null,
-                child: RaisedButton(
-                    child: Text("Check for updates"),
-                    onPressed: () {
-                      //todo  可以考虑直接传入 OadState
-                      _checkAndUpdateFirmware(device, settingsBloc.inAddOadCmd);
-                    }),
-              );
+              return (oadState.isOad || device == null)
+                  ? Text("Please Connect Device")
+                  : RaisedButton(
+                      child: Text("Check for updates"),
+                      onPressed: () {
+                        //todo  可以考虑直接传入 OadState
+                        _checkAndUpdateFirmware(
+                            device, settingsBloc.inAddOadCmd);
+                      });
             },
           ),
           children: <Widget>[
