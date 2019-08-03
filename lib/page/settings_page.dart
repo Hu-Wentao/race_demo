@@ -81,38 +81,12 @@ class SettingsPage extends StatelessWidget {
     return StreamBuilder<UpdateProgressInfo>(
       stream: settingsBloc.outUpdateProgress,
       initialData: UpdateProgressInfo(
-        null,
+        null,null,
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        // todo................. 考虑将以下内容都移动到BLoC中
-        String oadPhaseMsg = "Null";
-        switch (snap.data.oadPhase) {
-          case OadPhase.UN_OAD:
-            oadPhaseMsg = "当前尚未开始OAD, 本内容不应当出现在界面中";
-            break;
-          case OadPhase.GET_FIRM:
-            settingsBloc.inAddTimerCmd.add(true); // 开始计时
-            oadPhaseMsg = "Downloading firm...";
-            break;
-          case OadPhase.REQUEST_MTU_PRIORITY:
-            oadPhaseMsg = "Request MTU & Priority...";
-            break;
-          case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
-            oadPhaseMsg = "Open characteristic notify...";
-            break;
-          case OadPhase.RECEIVE_NOTIFY:
-            oadPhaseMsg = "Sending Firmware...";
-            break;
-          case OadPhase.LISTENED_RESULT:
-            //todo 此处应显示 升级成功 或 升级失败.....................
-            oadPhaseMsg = "Receive Result";
-            settingsBloc.inAddTimerCmd.add(false); // 计时结束
-            break;
-          case OadPhase.CHECK_VERSION:
-            // TODO: Handle this case.
-            break;
-        }
+
+        final String oadPhaseMsg = snap.data.phaseMsg;
 
         var tile = NoneBorderColorExpansionTile(
           // todo  .................. 在这里添加点击事件, (包裹一个可点击的控件等)方式, 以控制面板的自动开启与关闭
