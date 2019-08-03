@@ -81,7 +81,7 @@ class SettingsPage extends StatelessWidget {
     return StreamBuilder<UpdateProgressInfo>(
       stream: settingsBloc.outUpdateProgress,
       initialData: UpdateProgressInfo(
-        null,null,
+        null,"init",
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
