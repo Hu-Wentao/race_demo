@@ -116,6 +116,10 @@ class SettingsPageBloc extends BaseBloc {
     }
     switch (updateCmd.updatePhase) {
       case OadPhase.UN_OAD:
+        print("当前不处于OAD状态, 本提示被打印代表程序逻辑出错########");
+        return;
+      case OadPhase.CHECK_VERSION:
+      // TODO: 检查固件版本, 然后直接返回到...... 待考虑....
         break;
       case OadPhase.GET_FIRM:
         binContent = await _getByteList(_getFirmwareFromFile());
@@ -179,6 +183,7 @@ class SettingsPageBloc extends BaseBloc {
             //todo  此处应该显示最终结果等....... 成功 或 失败
             phraseProgress: 1));
         break;
+
     }
   }
 }

@@ -10,7 +10,7 @@ import 'package:race_demo/race_device.dart';
 import 'oad_state.dart';
 
 class AppState with ChangeNotifier {
-  OadState currentOadState;
+  OadState currentOadState = OadState();
 
   RaceDevice _raceDevice;
   ThemeData _themeData = ThemeData.light();
