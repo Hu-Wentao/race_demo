@@ -5,8 +5,8 @@ import 'package:flutter/widgets.dart';
 
 const Duration _kExpand = Duration(milliseconds: 200);
 
-class NoneBorderColorExpansionTile extends StatefulWidget {
-  const NoneBorderColorExpansionTile({
+class RadiusStreamExpansionTile extends StatefulWidget {
+  const RadiusStreamExpansionTile({
     Key key,
     this.leading,
     @required this.title,
@@ -35,12 +35,12 @@ class NoneBorderColorExpansionTile extends StatefulWidget {
   final Stream<bool> ctrlExpand;
 
   @override
-  _NoneBorderColorExpansionTileState createState() =>
-      _NoneBorderColorExpansionTileState(ctrlExpand);
+  _RadiusStreamExpansionTileState createState() =>
+      _RadiusStreamExpansionTileState(ctrlExpand);
 }
 
-class _NoneBorderColorExpansionTileState
-    extends State<NoneBorderColorExpansionTile>
+class _RadiusStreamExpansionTileState
+    extends State<RadiusStreamExpansionTile>
     with SingleTickerProviderStateMixin {
   static final Animatable<double> _easeOutTween =
       CurveTween(curve: Curves.easeOut);
@@ -64,7 +64,7 @@ class _NoneBorderColorExpansionTileState
 
   bool _isExpanded = false;
 
-  _NoneBorderColorExpansionTileState(this._outSetExpand);
+  _RadiusStreamExpansionTileState(this._outSetExpand);
 
   @override
   void initState() {

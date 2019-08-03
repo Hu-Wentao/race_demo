@@ -162,7 +162,7 @@ class StatusPage extends StatelessWidget {
                   case "Race_OAD2":
                     print(
                         'StatusPage._buildBtnBy 发现列表找包含: ${d.name} 已自动选择该设备 #### todo ');
-                    inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, d));
+                    inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE,context, device:d));
                     break;
                 }
               });
@@ -177,7 +177,7 @@ class StatusPage extends StatelessWidget {
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),
           onPressed: () => inBleOperator.add(BleOpInfo(
-              Operate.DISCONNECT_DEVICE, info.data as BluetoothDevice)),
+              Operate.DISCONNECT_DEVICE, context, device: info.data as BluetoothDevice)),
         );
     }
   }

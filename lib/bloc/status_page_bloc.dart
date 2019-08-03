@@ -2,9 +2,10 @@
 // Email: hu.wentao@outlook.com
 import 'dart:async';
 
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:provider/provider.dart';
 import 'package:race_demo/provider/race_model.dart';
+import 'package:race_demo/provider/store.dart';
 import 'package:race_demo/utils/ble_util.dart';
 import 'base_bloc.dart';
 
@@ -12,7 +13,6 @@ import 'base_bloc.dart';
 const String DEVICE_NAME_START_WITH = "Race_";
 
 class StatusPageBloc extends BaseBloc {
-//  RaceDevice currentRaceDevice;
   RaceModel appState;
 
   @override
@@ -52,13 +52,13 @@ class StatusPageBloc extends BaseBloc {
         _checkAndOpenBle();
         break;
       case Operate._FIND_IN_CONNECTED:
-        _findInConnectedDevice();
+        _findInConnectedDevice(info.context);
         break;
       case Operate._SCAN_DEVICE:
-        _scanDevice();
+        _scanDevice(info.context);
         break;
       case Operate.CONNECT_DEVICE:
-        _connectDevice(info.device);
+        _connectDevice(info.context, info.device);
         break;
       case Operate.STOP_SCANNING:
         FlutterBlue.instance.stopScan();
@@ -66,8 +66,8 @@ class StatusPageBloc extends BaseBloc {
         break;
       case Operate.DISCONNECT_DEVICE:
         await info.device.disconnect();
-//        currentRaceDevice = null;
-        appState.setCurrentDevice();
+
+        Store.value<RaceModel>(info.context).setCurrentDevice();
 
         _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
         break;
@@ -90,7 +90,7 @@ class StatusPageBloc extends BaseBloc {
     });
   }
 
-  _findInConnectedDevice() {
+  _findInConnectedDevice(BuildContext context) {
     FlutterBlue.instance.connectedDevices
         .then((list) =>
         list
@@ -105,7 +105,7 @@ class StatusPageBloc extends BaseBloc {
         print(
             'StatusPageBloc._findInConnectedDevice 发现已连接了 一个以Race开头的设备:${rightList[0]
                 .name}激活 CONNECT_DEVICE');
-        inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0]));
+        inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, context, device: rightList[0]));
       } else {
         // 提示用户手动选择连接的设备,
         print(
@@ -117,7 +117,7 @@ class StatusPageBloc extends BaseBloc {
   }
 
   // 扫描设备
-  _scanDevice() {
+  _scanDevice(BuildContext context) {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
     FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2)).then((
         _) {
@@ -140,14 +140,14 @@ class StatusPageBloc extends BaseBloc {
             'StatusPageBloc._scanDevice 发现了一个合适的设备: ${rightList[0].device
                 .name}, 正在连接');
         inBleOperator
-            .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0].device));
+            .add(BleOpInfo(Operate.CONNECT_DEVICE,context, device:rightList[0].device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
       } else {
         print('StatusPageBloc._scanDevice 发现了多个合适设备: $rightList, 自动选择信号最强的设备');
         rightList = rightList.where((r) => r.rssi < 0).toList();
         rightList.sort(((a, b) => b.rssi - a.rssi));
         inBleOperator
-            .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first.device));
+            .add(BleOpInfo(Operate.CONNECT_DEVICE, context , device: rightList.first.device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
         print(
             'StatusPageBloc._scanDevice 最终选择连接的设备是 ${rightList
@@ -156,13 +156,12 @@ class StatusPageBloc extends BaseBloc {
     });
   }
 
-  _connectDevice(BluetoothDevice device) async {
+  _connectDevice(BuildContext context, BluetoothDevice device) async {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
 
     device.connect();
-//    Provider.of<RaceModel>(context)
-//    currentRaceDevice = DeviceCc2640(device);
-
+    
+    Provider.of<RaceModel>(context).setCurrentDevice(bleDevice: device);
 
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));
@@ -173,8 +172,9 @@ class StatusPageBloc extends BaseBloc {
 class BleOpInfo {
   final Operate op;
   final BluetoothDevice device;
+  final BuildContext context;
 
-  BleOpInfo(this.op, this.device);
+  BleOpInfo(this.op, this.context,{ this.device,} );
 }
 
 enum Operate {

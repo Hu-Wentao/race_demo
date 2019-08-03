@@ -8,6 +8,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:race_demo/provider/oad_model.dart';
+import 'package:race_demo/provider/race_model.dart';
 import 'package:race_demo/provider/store.dart';
 
 import '../race_device.dart';
@@ -120,7 +121,6 @@ class SettingsPageBloc extends BaseBloc {
           updateCmd.updatePhase,
           "Initial OAD ...",
         ));
-        // todo .l...............................
 
         break;
       case OadPhase.CHECK_VERSION:
@@ -138,7 +138,7 @@ class SettingsPageBloc extends BaseBloc {
         ));
 
         binContent = await _getByteList(_getFirmwareFromFile());
-        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY));
+        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY, updateCmd.context));
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////
       case OadPhase.REQUEST_MTU_PRIORITY:
@@ -147,9 +147,9 @@ class SettingsPageBloc extends BaseBloc {
           "Request MTU & Priority...",
         ));
 
-        currentRaceDevice.requestMtuAndPriority(
+        Store.value<RaceModel>(updateCmd.context).currentDevice.requestMtuAndPriority(
             mtu: 200, priority: ConnectionPriority.high);
-        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
+        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD, updateCmd.context));
         break;
       case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
         _inShowUpdateProgress.add(UpdateProgressInfo(
@@ -157,7 +157,7 @@ class SettingsPageBloc extends BaseBloc {
           "Open notify...",
         ));
 
-        await currentRaceDevice.openAndListenCharNotify(inAddUpdateCmd, [
+        await (Store.value<RaceModel>(updateCmd.context).currentDevice).openAndListenCharNotify(inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
@@ -166,7 +166,7 @@ class SettingsPageBloc extends BaseBloc {
         await Future.delayed(const Duration(seconds: 1));
         print(
             'SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
-        (await currentRaceDevice.charMap)[DeviceCc2640.identifyCharUuid]
+        (await (Store.value<RaceModel>(updateCmd.context).currentDevice).charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
       case OadPhase.RECEIVE_NOTIFY:
@@ -197,7 +197,7 @@ class SettingsPageBloc extends BaseBloc {
                 phraseProgress: index / binContent.length));
             break;
           case DeviceCc2640.statusCharUuid:
-            inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT,
+            inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT,updateCmd.context,
                 notifyInfo: notifyInfo));
             break;
         }

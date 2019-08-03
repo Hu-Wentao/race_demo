@@ -4,8 +4,7 @@ import 'package:race_demo/bloc/settings_page_bloc.dart';
 import 'package:race_demo/provider/race_model.dart';
 import 'package:race_demo/provider/oad_model.dart';
 import 'package:race_demo/provider/store.dart';
-import 'package:race_demo/race_device.dart';
-import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
+import 'package:race_demo/widget/radius_stream_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
@@ -86,7 +85,7 @@ class SettingsPage extends StatelessWidget {
       builder: (context, snap) {
         final String oadPhaseMsg = snap.data.phaseMsg;
 
-        var tile = NoneBorderColorExpansionTile(
+        var tile = RadiusStreamExpansionTile(
           ctrlExpand: settingsBloc.outUpdateProgress.map((upi)=>upi.oadPhase!=OadPhase.UN_OAD),
           title: Text("Upgrade Firmware"),
           trailing: Store.connect<RaceModel>(
@@ -100,7 +99,7 @@ class SettingsPage extends StatelessWidget {
                     : RaisedButton(
                     child: Text("Check for updates"),
                     onPressed: () {
-                      settingsBloc.inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.INIT_OAD,context: context));
+                      settingsBloc.inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.INIT_OAD, context));
                     }),
               );
             },
