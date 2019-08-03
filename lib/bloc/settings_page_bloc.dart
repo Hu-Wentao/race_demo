@@ -4,15 +4,17 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:race_demo/provider/oad_state.dart';
+import 'package:race_demo/provider/oad_model.dart';
+import 'package:race_demo/provider/store.dart';
 
 import '../race_device.dart';
 import 'base_bloc.dart';
 
 class SettingsPageBloc extends BaseBloc {
-  RaceDevice currentRaceDevice;
+//  RaceDevice currentRaceDevice;
 
   bool isUpdating = false;
 
@@ -21,20 +23,6 @@ class SettingsPageBloc extends BaseBloc {
   int updateStartTime = 0;
   Timer timer;
 
-  @override
-  void dispose() {
-    // 让设置Page 获取到 Device
-    _transportDevice.close();
-    // 触发 OAD 事件     // 控制OAD的流程     // 向page展示当前的进度
-    _oadCtrl.close();
-    _updateControl.close();
-    _updateFirmware.close();
-
-    // 触发 计时器 事件     // 向Page发送计时数据
-    _timerCtrl.close();
-    _timeDataCtrl.close();
-  }
-
   // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用 redux 取代
   StreamController<BluetoothDevice> _transportDevice =
       StreamController.broadcast();
@@ -42,13 +30,6 @@ class SettingsPageBloc extends BaseBloc {
   StreamSink<BluetoothDevice> get inAddConnectedDevice => _transportDevice.sink;
 
   Stream<BluetoothDevice> get outConnectedDevice => _transportDevice.stream;
-
-  // 控制OAD 开始与结束 // todo 可以与 _updateControl 合并
-  StreamController<RaceDevice> _oadCtrl = StreamController();
-
-  StreamSink<RaceDevice> get inAddOadCmd => _oadCtrl.sink;
-
-  Stream<RaceDevice> get _outOadCmd => _oadCtrl.stream;
 
   // 设备升级流, 只是用来展示固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
@@ -62,7 +43,7 @@ class SettingsPageBloc extends BaseBloc {
   // 升级控制
   StreamController<UpdateCtrlCmd> _updateControl = StreamController.broadcast();
 
-  StreamSink<UpdateCtrlCmd> get _inAddUpdateCmd => _updateControl.sink;
+  StreamSink<UpdateCtrlCmd> get inAddUpdateCmd => _updateControl.sink;
 
   Stream<UpdateCtrlCmd> get _outGetUpdateCmd => _updateControl.stream;
 
@@ -80,8 +61,23 @@ class SettingsPageBloc extends BaseBloc {
 
   Stream<int> get outCurrentTime => _timeDataCtrl.stream;
 
+  @override
+  void dispose() {
+    // 让设置Page 获取到 Device
+    _transportDevice.close();
+    // 触发 OAD 事件     // 控制OAD的流程     // 向page展示当前的进度
+//    _oadCtrl.close();
+    _updateControl.close();
+    _updateFirmware.close();
+
+    // 触发 计时器 事件     // 向Page发送计时数据
+    _timerCtrl.close();
+    _timeDataCtrl.close();
+  }
+
   SettingsPageBloc() {
-    _outOadCmd.listen((device) => _oadFlow(device));
+//    _outOadCmd.listen((isStart) => _oadFlow(isStart));
+
     _outGetUpdateCmd.listen((updateCmd) => _exeUpdateCmd(updateCmd));
 
     _outTimeCmd.listen((start) {
@@ -98,34 +94,41 @@ class SettingsPageBloc extends BaseBloc {
     });
   }
 
-  Future _oadFlow(RaceDevice device) async {
-    if (isUpdating) {
-      print('SettingsPageBloc._oadFlow 检测到当前设备正在更新, 请勿重复发起更新....');
-      return;
-    }
-    isUpdating = true;
+//  Future _oadFlow(bool isStart) async {
+//    if (isUpdating) {
+//      print('SettingsPageBloc._oadFlow 检测到当前设备正在更新, 请勿重复发起更新....');
+//      return;
+//    }
+//    isUpdating = true;
 //    currentRaceDevice = DeviceCc2640(device);
-    currentRaceDevice = device;
-
-    _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.GET_FIRM));
-  }
+//
+//    inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.GET_FIRM));
+//  }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
-//    if (updateCmd.updatePhase != OadPhase.RECEIVE_NOTIFY) {
-//      _inShowUpdateProgress.add(UpdateProgressInfo(updateCmd.updatePhase));
-//    }
+    Store.value<OadModel>(updateCmd.context).setCurrentOadPhase(updateCmd.updatePhase);
+
     switch (updateCmd.updatePhase) {
       case OadPhase.UN_OAD:
         _inShowUpdateProgress.add(UpdateProgressInfo(
             updateCmd.updatePhase, "Not in oad",
             phraseProgress: 0));
-        print("当前不处于OAD状态, 本提示被打印代表程序逻辑出错########");
+        print("当前不处于OAD状态, 本提示被打印代表程序逻辑可能出错########");
         return;
+      case OadPhase.INIT_OAD:
+        _inShowUpdateProgress.add(UpdateProgressInfo(
+          updateCmd.updatePhase,
+          "Initial OAD ...",
+        ));
+        // todo .l...............................
+
+        break;
       case OadPhase.CHECK_VERSION:
         _inShowUpdateProgress.add(UpdateProgressInfo(
           updateCmd.updatePhase,
           "Checking version...",
         ));
+
         // TODO: 检查固件版本, 然后直接返回到...... 待考虑....
         break;
       case OadPhase.GET_FIRM:
@@ -135,7 +138,7 @@ class SettingsPageBloc extends BaseBloc {
         ));
 
         binContent = await _getByteList(_getFirmwareFromFile());
-        _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY));
+        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.REQUEST_MTU_PRIORITY));
         break;
       /////////////////////////////////////////////////////////////////////////////////////////////
       case OadPhase.REQUEST_MTU_PRIORITY:
@@ -143,9 +146,10 @@ class SettingsPageBloc extends BaseBloc {
           updateCmd.updatePhase,
           "Request MTU & Priority...",
         ));
+
         currentRaceDevice.requestMtuAndPriority(
             mtu: 200, priority: ConnectionPriority.high);
-        _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
+        inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
       case OadPhase.LISTEN_CHARA_AND_SEND_HEAD:
         _inShowUpdateProgress.add(UpdateProgressInfo(
@@ -153,7 +157,7 @@ class SettingsPageBloc extends BaseBloc {
           "Open notify...",
         ));
 
-        await currentRaceDevice.openAndListenCharNotify(_inAddUpdateCmd, [
+        await currentRaceDevice.openAndListenCharNotify(inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
@@ -193,7 +197,7 @@ class SettingsPageBloc extends BaseBloc {
                 phraseProgress: index / binContent.length));
             break;
           case DeviceCc2640.statusCharUuid:
-            _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT,
+            inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.LISTENED_RESULT,
                 notifyInfo: notifyInfo));
             break;
         }
@@ -220,9 +224,11 @@ class SettingsPageBloc extends BaseBloc {
 class UpdateCtrlCmd {
   final OadPhase updatePhase;
   final NotifyInfo notifyInfo;
+  final BuildContext context;
 
   UpdateCtrlCmd(
-    this.updatePhase, {
+    this.updatePhase,
+    this.context,{
     this.notifyInfo,
   });
 }
@@ -243,7 +249,7 @@ class UpdateProgressInfo {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD1_128_CRC.bin";
+  const String firmwareName = "app_TEST1_128_CRC.bin";
 //  const String firmwareName = "app_TEST2_128_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";

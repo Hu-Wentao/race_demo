@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
-
 const Duration _kExpand = Duration(milliseconds: 200);
 
 class NoneBorderColorExpansionTile extends StatefulWidget {
@@ -16,7 +15,8 @@ class NoneBorderColorExpansionTile extends StatefulWidget {
     this.children = const <Widget>[],
     this.trailing,
     this.initiallyExpanded = false,
-  }) : assert(initiallyExpanded != null),
+    this.ctrlExpand,
+  })  : assert(initiallyExpanded != null),
         super(key: key);
 
   final Widget leading;
@@ -32,20 +32,28 @@ class NoneBorderColorExpansionTile extends StatefulWidget {
   final Widget trailing;
 
   final bool initiallyExpanded;
+  final Stream<bool> ctrlExpand;
 
   @override
-  _NoneBorderColorExpansionTileState createState() => _NoneBorderColorExpansionTileState();
+  _NoneBorderColorExpansionTileState createState() =>
+      _NoneBorderColorExpansionTileState(ctrlExpand);
 }
 
-class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionTile> with SingleTickerProviderStateMixin {
-  static final Animatable<double> _easeOutTween = CurveTween(curve: Curves.easeOut);
-  static final Animatable<double> _easeInTween = CurveTween(curve: Curves.easeIn);
-  static final Animatable<double> _halfTween = Tween<double>(begin: 0.0, end: 0.5);
+class _NoneBorderColorExpansionTileState
+    extends State<NoneBorderColorExpansionTile>
+    with SingleTickerProviderStateMixin {
+  static final Animatable<double> _easeOutTween =
+      CurveTween(curve: Curves.easeOut);
+  static final Animatable<double> _easeInTween =
+      CurveTween(curve: Curves.easeIn);
+  static final Animatable<double> _halfTween =
+      Tween<double>(begin: 0.0, end: 0.5);
 
   final ColorTween _borderColorTween = ColorTween();
   final ColorTween _headerColorTween = ColorTween();
   final ColorTween _iconColorTween = ColorTween();
   final ColorTween _backgroundColorTween = ColorTween();
+  final Stream<bool> _outSetExpand; // 控制Tile的展开与收缩
 
   AnimationController _controller;
   Animation<double> _iconTurns;
@@ -56,6 +64,8 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
 
   bool _isExpanded = false;
 
+  _NoneBorderColorExpansionTileState(this._outSetExpand);
+
   @override
   void initState() {
     super.initState();
@@ -64,11 +74,14 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
     _iconTurns = _controller.drive(_halfTween.chain(_easeInTween));
     _headerColor = _controller.drive(_headerColorTween.chain(_easeInTween));
     _iconColor = _controller.drive(_iconColorTween.chain(_easeInTween));
-    _backgroundColor = _controller.drive(_backgroundColorTween.chain(_easeOutTween));
+    _backgroundColor =
+        _controller.drive(_backgroundColorTween.chain(_easeOutTween));
 
-    _isExpanded = PageStorage.of(context)?.readState(context) ?? widget.initiallyExpanded;
-    if (_isExpanded)
-      _controller.value = 1.0;
+    _isExpanded =
+        PageStorage.of(context)?.readState(context) ?? widget.initiallyExpanded;
+    if (_isExpanded) _controller.value = 1.0;
+
+    _outSetExpand.listen((expandCmd) => _handleTap(expandCmd));
   }
 
   @override
@@ -77,15 +90,17 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
     super.dispose();
   }
 
-  void _handleTap() {
+  void _handleTap([bool expandCmd]) {
+    if (expandCmd != null && expandCmd == _isExpanded) {
+      return;
+    }
     setState(() {
       _isExpanded = !_isExpanded;
       if (_isExpanded) {
         _controller.forward();
       } else {
         _controller.reverse().then<void>((void value) {
-          if (!mounted)
-            return;
+          if (!mounted) return;
           setState(() {
             // Rebuild without widget.children.
           });
@@ -100,7 +115,6 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
   Widget _buildChildren(BuildContext context, Widget child) {
     // 将边界颜色设为透明
     final Color borderSideColor = Color.fromRGBO(0, 0, 0, 0);
-
 
     return Container(
       decoration: BoxDecoration(
@@ -120,10 +134,11 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
               onTap: _handleTap,
               leading: widget.leading,
               title: widget.title,
-              trailing: widget.trailing ?? RotationTransition(
-                turns: _iconTurns,
-                child: const Icon(Icons.expand_more),
-              ),
+              trailing: widget.trailing ??
+                  RotationTransition(
+                    turns: _iconTurns,
+                    child: const Icon(Icons.expand_more),
+                  ),
             ),
           ),
           ClipRect(
@@ -140,16 +155,14 @@ class _NoneBorderColorExpansionTileState extends State<NoneBorderColorExpansionT
   @override
   void didChangeDependencies() {
     final ThemeData theme = Theme.of(context);
-    _borderColorTween
-      ..end = theme.dividerColor;
+    _borderColorTween..end = theme.dividerColor;
     _headerColorTween
       ..begin = theme.textTheme.subhead.color
       ..end = theme.accentColor;
     _iconColorTween
       ..begin = theme.unselectedWidgetColor
       ..end = theme.accentColor;
-    _backgroundColorTween
-      ..end = widget.backgroundColor;
+    _backgroundColorTween..end = widget.backgroundColor;
     super.didChangeDependencies();
   }
 

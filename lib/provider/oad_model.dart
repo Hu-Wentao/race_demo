@@ -4,7 +4,7 @@
 // Time : 21:12
 import 'package:flutter/foundation.dart';
 
-class OadState with ChangeNotifier {
+class OadModel with ChangeNotifier {
   OadPhase _oadPhase = OadPhase.UN_OAD;
 
   get isOad => _oadPhase != OadPhase.UN_OAD;
@@ -17,6 +17,7 @@ class OadState with ChangeNotifier {
 
 enum OadPhase {
   UN_OAD,
+  INIT_OAD,       // 初始化 OAD
   CHECK_VERSION,  // 检查固件版本与最新版本
   GET_FIRM,       // 下载固件
   REQUEST_MTU_PRIORITY, // 设置请求与MTU

@@ -2,7 +2,7 @@
 // Email: hu.wentao@outlook.com
 import 'dart:io';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:race_demo/provider/oad_state.dart';
+import 'package:race_demo/provider/oad_model.dart';
 import 'dart:async';
 
 import 'bloc/settings_page_bloc.dart';
@@ -73,7 +73,6 @@ class DeviceCc2640 extends RaceDevice {
     for(int i =0; i<charUuidList.length; i++) {
       print('DeviceCc2640.openAndListenCharNotify ${DateTime.now().toIso8601String()} ### test 正在打开 ${charUuidList[i]} 的通知....');
 
-
       // 无法省略...
       await Future.delayed(const Duration(milliseconds: 600));
 
@@ -91,7 +90,6 @@ class DeviceCc2640 extends RaceDevice {
 }
 
 class NotifyInfo {
-//  String charKeyUuid;
   List<int> notifyValue;
   BluetoothCharacteristic char;
 

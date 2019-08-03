@@ -4,8 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:provider/provider.dart';
-import 'package:race_demo/bloc/home_bloc.dart';
-import 'package:race_demo/provider/app_state.dart';
+import 'package:race_demo/provider/race_model.dart';
 import 'package:race_demo/utils/ble_util.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
@@ -13,7 +12,6 @@ import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 
 class StatusPage extends StatelessWidget {
-//  final HomeBloc homeBloc;
 
   const StatusPage({Key key}) : super(key: key);
 
@@ -150,7 +148,7 @@ class StatusPage extends StatelessWidget {
       case BleScanState.PLEASE_SELECT_DEVICE:
         List<BluetoothDevice> deviceList = info.data;
         return RaisedButton(
-            child: const Text("Please Tap To Select Device"),
+            child: const Text("Please Select Device"),
             onPressed: () {
               //todo 添加一个弹出框, 展示 list,
               print('StatusPage._buildBtnBy 此处应当弹出dialog, 手动选择设备');
@@ -172,9 +170,10 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        // 发送给全局状态, 持有该设备
-        Provider.of<AppState>(context)
-            .setCurrentDevice(bleDevice: info.data as BluetoothDevice);
+        // todo 将以下内容转移到bloc中
+//        // 发送给全局状态, 持有该设备
+//        Provider.of<AppState>(context)
+//            .setCurrentDevice(bleDevice: info.data as BluetoothDevice);
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),
           onPressed: () => inBleOperator.add(BleOpInfo(
