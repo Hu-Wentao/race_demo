@@ -84,9 +84,11 @@ class SettingsPage extends StatelessWidget {
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
+        // todo................. 考虑将以下内容都移动到BLoC中
         String oadPhaseMsg = "Null";
         switch (snap.data.oadPhase) {
           case OadPhase.UN_OAD:
+            oadPhaseMsg = "当前尚未开始OAD, 本内容不应当出现在界面中";
             break;
           case OadPhase.GET_FIRM:
             settingsBloc.inAddTimerCmd.add(true); // 开始计时
@@ -106,11 +108,15 @@ class SettingsPage extends StatelessWidget {
             oadPhaseMsg = "Receive Result";
             settingsBloc.inAddTimerCmd.add(false); // 计时结束
             break;
+          case OadPhase.CHECK_VERSION:
+            // TODO: Handle this case.
+            break;
         }
 
 //        var appState = Provider.of<AppState>(context);
 
-        return NoneBorderColorExpansionTile(
+        var tile = NoneBorderColorExpansionTile(
+          // todo  .................. 在这里添加点击事件, (包裹一个可点击的控件等)方式, 以控制面板的自动开启与关闭
           title: Text("Upgrade Firmware"),
           trailing: Consumer<AppState>(
             builder: (context, appState, _) {
@@ -171,10 +177,13 @@ class SettingsPage extends StatelessWidget {
             ),
           ],
         );
+//        tile.handleTap();
+        return tile;
       },
     );
   }
 
+  // todo .............................请将该方法放入BLoC中处理.........................
   void _checkAndUpdateFirmware(
       BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
     print(
