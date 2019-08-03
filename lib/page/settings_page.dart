@@ -114,7 +114,7 @@ class SettingsPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    "Update Phrase  ",
+                    "Update Message ",
                     style: greyTextStyle,
                     softWrap: true,
                   ),
