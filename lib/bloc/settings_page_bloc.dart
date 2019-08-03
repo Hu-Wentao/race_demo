@@ -243,7 +243,8 @@ class UpdateProgressInfo {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_TEST2_128_CRC.bin";
+  const String firmwareName = "app_OAD1_128_CRC.bin";
+//  const String firmwareName = "app_TEST2_128_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =

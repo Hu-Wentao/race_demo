@@ -114,7 +114,7 @@ class SettingsPage extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Text(
-                    "Update Message ",
+                    "OAD Message ",
                     style: greyTextStyle,
                     softWrap: true,
                   ),
@@ -128,7 +128,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ListTile(
               leading: Text(
-                "Oad Progress",
+                "OAD Progress",
                 textAlign: TextAlign.center,
                 style: greyTextStyle,
               ),
