@@ -35,7 +35,7 @@ class SettingsPageBloc extends BaseBloc {
     _timeDataCtrl.close();
   }
 
-  // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用redux取代
+  // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用 redux 取代
   StreamController<BluetoothDevice> _transportDevice =
       StreamController.broadcast();
 
@@ -44,11 +44,11 @@ class SettingsPageBloc extends BaseBloc {
   Stream<BluetoothDevice> get outConnectedDevice => _transportDevice.stream;
 
   // 控制OAD 开始与结束 // todo 可以与 _updateControl 合并
-  StreamController<BluetoothDevice> _oadCtrl = StreamController();
+  StreamController<RaceDevice> _oadCtrl = StreamController();
 
-  StreamSink<BluetoothDevice> get inAddOadCmd => _oadCtrl.sink;
+  StreamSink<RaceDevice> get inAddOadCmd => _oadCtrl.sink;
 
-  Stream<BluetoothDevice> get _outOadCmd => _oadCtrl.stream;
+  Stream<RaceDevice> get _outOadCmd => _oadCtrl.stream;
 
   // 设备升级流, 只是用来展示固件升级的进度
   StreamController<UpdateProgressInfo> _updateFirmware =
@@ -98,14 +98,14 @@ class SettingsPageBloc extends BaseBloc {
     });
   }
 
-  Future _oadFlow(BluetoothDevice device) async {
+  Future _oadFlow(RaceDevice device) async {
     if (isUpdating) {
       print('SettingsPageBloc._oadFlow 检测到当前设备正在更新, 请勿重复发起更新....');
       return;
     }
     isUpdating = true;
-
-    currentRaceDevice = DeviceCc2640(device);
+//    currentRaceDevice = DeviceCc2640(device);
+    currentRaceDevice = device;
 
     _inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.GET_FIRM));
   }
@@ -128,7 +128,7 @@ class SettingsPageBloc extends BaseBloc {
       /////////////////////////////////////////////////////////////////////////////////////////////
       case OadPhase.REQUEST_MTU_PRIORITY:
         currentRaceDevice.requestMtuAndPriority(
-            mtu: 251, priority: ConnectionPriority.high);
+            mtu: 200, priority: ConnectionPriority.high);
         _inAddUpdateCmd
             .add(UpdateCtrlCmd(OadPhase.LISTEN_CHARA_AND_SEND_HEAD));
         break;
@@ -214,7 +214,7 @@ class UpdateProgressInfo {
 
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD2_128_CRC.bin";
+  const String firmwareName = "app_OAD1_128_our_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =

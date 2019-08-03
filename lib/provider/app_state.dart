@@ -15,7 +15,7 @@ class AppState with ChangeNotifier {
   RaceDevice _raceDevice;
   ThemeData _themeData = ThemeData.light();
 
-  get currentDevice => _raceDevice;
+  RaceDevice get currentDevice => _raceDevice;
 
   setCurrentDevice({BluetoothDevice device}) {
     if(device == null){

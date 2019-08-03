@@ -7,6 +7,7 @@ import 'package:race_demo/bloc/base_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
 import 'package:race_demo/provider/app_state.dart';
 import 'package:race_demo/provider/oad_state.dart';
+import 'package:race_demo/race_device.dart';
 import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
@@ -128,6 +129,7 @@ class SettingsPage extends StatelessWidget {
                 child: RaisedButton(
                     child: Text("Check for updates"),
                     onPressed: () {
+                      //todo  可以考虑直接传入 OadState
                       _checkAndUpdateFirmware(device, settingsBloc.inAddOadCmd);
                     }),
               );
@@ -185,10 +187,10 @@ class SettingsPage extends StatelessWidget {
 
   // todo .............................请将该方法放入BLoC中处理.........................
   void _checkAndUpdateFirmware(
-      BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
+      RaceDevice device, StreamSink<RaceDevice> inAddOadCmd) {
     print(
-        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
-    // todo 这里弹出窗口, 检查更新
+        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.device.name}');
+    // todo 这里弹出窗口, 检查更新( 将该步骤移动到Oad流程中)
     // 升级固件流程
     inAddOadCmd.add(device);
   }
