@@ -22,5 +22,5 @@ enum OadPhase {
   REQUEST_MTU_PRIORITY, // 设置请求与MTU
   LISTEN_CHARA_AND_SEND_HEAD, // 打开特征监听, 发送请求头
   RECEIVE_NOTIFY,     // 监听特征
-  LISTENED_RESULT, // 用于返回OAD 出错, 成功, 等信息
+  LISTENED_RESULT,    // 用于返回OAD 出错, 成功, 等信息
 }

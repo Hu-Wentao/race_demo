@@ -17,12 +17,12 @@ class AppState with ChangeNotifier {
 
   RaceDevice get currentDevice => _raceDevice;
 
-  setCurrentDevice({BluetoothDevice device}) {
-    if(device == null){
+  setCurrentDevice({BluetoothDevice bleDevice}) {
+    if(bleDevice == null){
       currentOadState.setCurrentOadPhase(OadPhase.UN_OAD);
       _raceDevice = null;
     }else{
-      _raceDevice = DeviceCc2640(device);
+      _raceDevice = DeviceCc2640(bleDevice);
     }
     notifyListeners();
   }

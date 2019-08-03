@@ -87,7 +87,7 @@ class DeviceCc2640 extends RaceDevice {
   }
 
   @override
-  int get mtu => 256;
+  int get mtu => 200;
 }
 
 class NotifyInfo {

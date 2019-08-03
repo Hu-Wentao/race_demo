@@ -174,7 +174,7 @@ class StatusPage extends StatelessWidget {
       case BleScanState.SHOW_CONNECTED_DEVICE:
         // 发送给全局状态, 持有该设备
         Provider.of<AppState>(context)
-            .setCurrentDevice(device: info.data as BluetoothDevice);
+            .setCurrentDevice(bleDevice: info.data as BluetoothDevice);
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),
           onPressed: () => inBleOperator.add(BleOpInfo(
