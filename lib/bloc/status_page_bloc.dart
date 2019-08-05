@@ -11,7 +11,7 @@ import 'base_bloc.dart';
 const String DEVICE_NAME_START_WITH = "Race_";
 
 class StatusPageBloc extends BaseBloc {
-  RaceDevice currentRaceDevice;
+  RaceState currentRaceDevice;
 
   @override
   void dispose() {

@@ -2,18 +2,22 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:flutter_redux/flutter_redux.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 import 'package:race_demo/bloc/home_bloc.dart';
 import 'package:race_demo/bloc/settings_page_bloc.dart';
+import 'package:race_demo/race_device.dart';
+import 'package:race_demo/redux/app_redux.dart';
 import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
-  final HomeBloc homeBloc;
-//  final Key checkUpdateBtnKey = const ValueKey("checkUpdateBtnKey");
+//  final HomeBloc homeBloc;
 
-  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
+  const SettingsPage({Key key}) : super(key: key);
+
+//  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -49,9 +53,8 @@ class SettingsPage extends StatelessWidget {
               TextDivider(
                 "About device",
               ),
-
               RadiusContainer(
-                child: _buildUpgradeFirmware(context, homeBloc, _settingsBloc),
+                child: _buildUpgradeFirmware(context, _settingsBloc),
               ),
             ],
           ),
@@ -72,8 +75,7 @@ class SettingsPage extends StatelessWidget {
     return ListTile();
   }
 
-  _buildUpgradeFirmware(
-      BuildContext context, HomeBloc homeBloc, SettingsPageBloc settingsBloc) {
+  _buildUpgradeFirmware(BuildContext context, SettingsPageBloc settingsBloc) {
     final greyTextStyle =
         TextStyle(color: Theme.of(context).textTheme.caption.color);
 
@@ -81,48 +83,32 @@ class SettingsPage extends StatelessWidget {
       stream: settingsBloc.outUpdateProgress,
       initialData: UpdateProgressInfo(
         null,
+        "init",
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        String updatePhaseMsg = "Null";
-        switch (snap.data.updatePhase) {
-          case UpdatePhase.GET_FIRM:
-            settingsBloc.inAddTimerCmd.add(true); // 开始计时
-            updatePhaseMsg = "Downloading firm...";
-            break;
-          case UpdatePhase.REQUEST_MTU_PRIORITY:
-            updatePhaseMsg = "Request MTU & Priority...";
-            break;
-          case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-            updatePhaseMsg = "Open characteristic notify...";
-            break;
-          case UpdatePhase.RECEIVE_NOTIFY:
-            updatePhaseMsg = "Sending Firmware...";
-            break;
-          case UpdatePhase.LISTENED_RESULT:
-            //todo 此处应显示 升级成功 或 升级失败.....................
-            updatePhaseMsg = "Receive Result";
-            settingsBloc.inAddTimerCmd.add(false);  // 计时结束
-            break;
-        }
+        final String oadPhaseMsg = snap.data.phaseMsg;
 
         return NoneBorderColorExpansionTile(
           title: Text("Upgrade Firmware"),
-          trailing: StreamBuilder<BluetoothDevice>(
-              stream: homeBloc.outGetConnectedDevice,
-              builder: (context, snap) {
-                return Offstage(
-                  // todo 这里应当使用一个流, 或者使用 redux来管理......................
-                  offstage: ,
-                  child: RaisedButton(
-                    child: Text("Check for updates"),
-                    onPressed: () {
-                      _checkAndUpdateFirmware(
-                          snap.data, settingsBloc.inAddOadCmd);
-                    },
-                  ),
-                );
-              }),
+          trailing: StoreConnector<OadState, bool>(
+            builder: (context, showBtnBool) => Offstage(
+              offstage: showBtnBool,
+              child: StoreConnector<DeviceState, bool>(
+                builder: (context, haveConnectedDevice) => haveConnectedDevice
+                    ? Text("Please Connect Device")
+                    : RaisedButton(
+                        child: Text("Check for updates"),
+                        onPressed: () {
+//                          StoreProvider.of<DeviceState>(context).state;// 如果在bloc中无法使用Store, 则考虑在此处使用
+                          settingsBloc.inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.INIT_OAD, context));
+                        },
+                      ),
+                converter: (store) => store.state.currentDevice == null,
+              ),
+            ),
+            converter: (state) => !state.state.isOad,
+          ),
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -135,7 +121,7 @@ class SettingsPage extends StatelessWidget {
                     softWrap: true,
                   ),
                   Text(
-                    updatePhaseMsg,
+                    oadPhaseMsg,
                     style: greyTextStyle,
                     softWrap: true,
                   ),
@@ -162,21 +148,12 @@ class SettingsPage extends StatelessWidget {
               initialData: 0,
               builder: (context, snap) => Padding(
                 padding: const EdgeInsets.fromLTRB(20, 4, 8, 8),
-                child: Text("${snap.data/1000} sec"),
+                child: Text("${snap.data / 1000} sec"),
               ),
             ),
           ],
         );
       },
     );
-  }
-
-  void _checkAndUpdateFirmware(
-      BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
-    print(
-        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
-    // TODO 检查固件版本
-    // 升级固件流程
-    inAddOadCmd.add(device);
   }
 }

@@ -2,16 +2,17 @@
 // Email: hu.wentao@outlook.com
 import 'dart:io';
 import 'package:flutter_blue/flutter_blue.dart';
+import 'package:race_demo/redux/app_redux.dart';
 import 'dart:async';
 
 import 'bloc/settings_page_bloc.dart';
 
-abstract class RaceDevice {
+abstract class RaceState {
   final BluetoothDevice device;
 
   int get mtu;
 
-  RaceDevice(this.device);
+  RaceState(this.device);
 
   requestMtuAndPriority({int mtu, ConnectionPriority priority}) {
     if (!Platform.isAndroid) return;
@@ -26,7 +27,7 @@ abstract class RaceDevice {
   Future<Map<String, BluetoothCharacteristic>> get charMap;
 }
 
-class DeviceCc2640 extends RaceDevice {
+class DeviceCc2640 extends RaceState {
   static const String oadServiceUuid = "f000ffc0-0451-4000-b000-000000000000";
 
   static const String identifyCharUuid = "f000ffc1-0451-4000-b000-000000000000";
@@ -79,7 +80,7 @@ class DeviceCc2640 extends RaceDevice {
       (await charMap)[charUuidList[i]].setNotifyValue(true);   // 库 存在问题......., setNotifyValue() 无法等待获取返回值
 
       (await charMap)[charUuidList[i]].value.listen((notify) => _inAddUpdateCmd.add(UpdateCtrlCmd(
-          UpdatePhase.RECEIVE_NOTIFY,
+          OadPhase.RECEIVE_NOTIFY,null,
           notifyInfo: NotifyInfo(((_charMap)[charUuidList[i]]), notify))));
       print('DeviceCc2640.openAndListenCharNotify ${DateTime.now().toIso8601String()} ### test 成功打开 ${charUuidList[i]} 的通知');
     }

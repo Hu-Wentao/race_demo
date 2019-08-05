@@ -2,12 +2,9 @@
 // Email: hu.wentao@outlook.com
 import 'package:flutter/material.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:race_demo/redux/redux_app_state.dart';
+import 'package:race_demo/redux/app_redux.dart';
 import 'package:redux/redux.dart';
-import 'package:race_demo/redux/redux_app_reducer.dart';
 
-import 'bloc/base_bloc.dart';
-import 'bloc/home_bloc.dart';
 import 'page/home_page.dart';
 
 void main() {
@@ -15,24 +12,18 @@ void main() {
 }
 
 class AppRedux extends StatelessWidget {
-  final Store<ReduxAppState> store =
-  Store<ReduxAppState>(appReducer, initialState: ReduxAppState.initState());
+  final Store<AppState> store =
+      Store<AppState>(appReducer, initialState: AppState.initState());
 
   @override
   Widget build(BuildContext context) {
     return StoreProvider(
         store: store,
         child: MaterialApp(
-          title: "RaceHF Bean",
-          theme: ThemeData(
-            primarySwatch: Colors.red,
-          ),
-          home: BlocProvider<HomeBloc>(
-            bloc: HomeBloc(),
-            child: HomePage(),
-          ),
-        ));
+            title: "RaceHF Bean",
+            theme: ThemeData(
+              primarySwatch: Colors.red,
+            ),
+            home: HomePage()));
   }
 }
-
-

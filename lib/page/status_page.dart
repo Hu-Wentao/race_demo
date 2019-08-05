@@ -3,19 +3,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
-import 'package:race_demo/bloc/home_bloc.dart';
+import 'package:flutter_redux/flutter_redux.dart';
+import 'package:race_demo/race_device.dart';
+import 'package:race_demo/redux/app_redux.dart';
 import 'package:race_demo/util/util.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 import 'package:race_demo/bloc/status_page_bloc.dart';
 import 'package:race_demo/bloc/base_bloc.dart';
 
-
-
 class StatusPage extends StatelessWidget {
-  final HomeBloc homeBloc;
+//  final HomeBloc homeBloc;
 
-  const StatusPage(this.homeBloc, {Key key}) : super(key: key);
+  const StatusPage({Key key}) : super(key: key);
+
+//  const StatusPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -61,8 +63,7 @@ class StatusPage extends StatelessWidget {
           stream: bloc.outGetBtnState,
           initialData: BtnStreamOpInfo(BleScanState.STOP_SCAN, null),
           builder: (context, snapshot) {
-
-            return _buildBtnBy(snapshot.data, bloc.inBleOperator);
+            return _buildBtnBy(snapshot.data, bloc.inBleOperator, context);
           },
         ),
       ),
@@ -112,7 +113,11 @@ class StatusPage extends StatelessWidget {
     ];
   }
 
-  _buildBtnBy(BtnStreamOpInfo info, StreamSink<BleOpInfo> inBleOperator) {
+  _buildBtnBy(
+    BtnStreamOpInfo info,
+    StreamSink<BleOpInfo> inBleOperator,
+    BuildContext context,
+  ) {
     switch (info.state) {
       case BleScanState.SCANNING:
         return RaisedButton(
@@ -172,8 +177,9 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        // 发送给父类的bloc, 表示已连接到了设备
-        homeBloc.inAddConnectedDevice.add(info.data as BluetoothDevice);
+        // 更新 Store
+        StoreProvider.of<DeviceState>(context)
+            .dispatch(SetCurrentDeviceAction(info.data));
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),
           onPressed: () => inBleOperator.add(BleOpInfo(
