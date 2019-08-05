@@ -14,9 +14,9 @@ class SetCurrentOadPhase extends Action{
 class OadState {
   OadPhase _oadPhase = OadPhase.UN_OAD;
 
-  get isOad => _oadPhase != OadPhase.UN_OAD;
+  bool get isOad => _oadPhase != OadPhase.UN_OAD;
 
-  get oadPhase => _oadPhase;
+  OadPhase get oadPhase => _oadPhase;
 }
 
 enum OadPhase {

@@ -100,8 +100,9 @@ class SettingsPageBloc extends BaseBloc {
   }
 
   _exeUpdateCmd(UpdateCtrlCmd updateCmd) async {
-    StoreProvider.of<OadState>(updateCmd.context)
-        .dispatch(SetCurrentOadPhase(updateCmd.oadPhase));
+    // todo 检测下行代码的有效性
+//    StoreProvider.of<AppState>(updateCmd.context)
+//        .dispatch(SetCurrentOadPhase(updateCmd.oadPhase));
 
     switch (updateCmd.oadPhase) {
       case OadPhase.UN_OAD:
@@ -152,8 +153,9 @@ class SettingsPageBloc extends BaseBloc {
           "Request MTU & Priority...",
         ));
 
-        StoreProvider.of<DeviceState>(updateCmd.context)
+        StoreProvider.of<AppState>(updateCmd.context)
             .state
+            .deviceState
             .currentDevice
             .requestMtuAndPriority(mtu: 200, priority: ConnectionPriority.high);
         inAddUpdateCmd.add(UpdateCtrlCmd(
@@ -165,8 +167,9 @@ class SettingsPageBloc extends BaseBloc {
           "Open notify...",
         ));
 
-        StoreProvider.of<DeviceState>(updateCmd.context)
+        StoreProvider.of<AppState>(updateCmd.context)
             .state
+            .deviceState
             .currentDevice
             .openAndListenCharNotify(inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
@@ -177,8 +180,9 @@ class SettingsPageBloc extends BaseBloc {
         await Future.delayed(const Duration(milliseconds: 700));
         print(
             'SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
-        (await StoreProvider.of<DeviceState>(updateCmd.context)
+        (await StoreProvider.of<AppState>(updateCmd.context)
                 .state
+                .deviceState
                 .currentDevice
                 .charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
@@ -226,11 +230,14 @@ class SettingsPageBloc extends BaseBloc {
           "Buffer error!",
         ][updateCmd.notifyInfo.notifyValue[0]];
 
-        print('SettingsPageBloc._oadNotify 监听到ffc4: $msg');
+        print('SettingsPageBloc._oadNotify 监听到ffc4: $msg, 15s后返回 UN_OAD状态');
 
         _inShowUpdateProgress.add(UpdateProgressInfo(
             OadPhase.RECEIVE_NOTIFY, msg,
             phraseProgress: 1));
+
+        Future.delayed(const Duration(seconds: 15)).then((_) => inAddUpdateCmd
+            .add(UpdateCtrlCmd(OadPhase.UN_OAD, updateCmd.context)));
         break;
     }
   }
@@ -264,7 +271,7 @@ class UpdateProgressInfo {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD2_128_CRC.bin";
+  const String firmwareName = "app_OAD2_16_CRC.bin";
 //  const String firmwareName = "from_net.bin";
 //  const String firmwareName = "firmware.bin";
   const String downloadUrl =
@@ -285,7 +292,7 @@ Future<List<List<int>>> _getByteList(Future<File> f) async {
   List<List<int>> binList = [];
 
   /// 发送数据的长度
-  const int sendLength = 128;
+  const int sendLength = 16;
   for (int i = 0; i < content.length; i += sendLength) {
     int index = i + sendLength;
     if (index > content.length) index = content.length;

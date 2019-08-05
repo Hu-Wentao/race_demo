@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_redux/flutter_redux.dart';
-import 'package:race_demo/race_device.dart';
 import 'package:race_demo/redux/app_redux.dart';
 import 'package:race_demo/util/util.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
@@ -178,7 +177,7 @@ class StatusPage extends StatelessWidget {
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
         // 更新 Store
-        StoreProvider.of<DeviceState>(context)
+        StoreProvider.of<AppState>(context)
             .dispatch(SetCurrentDeviceAction(info.data));
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),

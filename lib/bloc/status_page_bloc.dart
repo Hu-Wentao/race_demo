@@ -72,7 +72,10 @@ class StatusPageBloc extends BaseBloc {
 
   // 检测蓝牙状态, 并自动打开
   _checkAndOpenBle() {
-    FlutterBlue.instance.state.where((state)=>[BluetoothState.on, BluetoothState.off].contains(state)).listen((bleState) {
+    FlutterBlue.instance.state
+        .where(
+            (state) => [BluetoothState.on, BluetoothState.off].contains(state))
+        .listen((bleState) {
       if (bleState == BluetoothState.on) {
         print('StatusPageBloc._onGetAction 监听到蓝牙已开启, 激活 _FIND_IN_CONNECTED 事件');
         inBleOperator.add(BleOpInfo(Operate._FIND_IN_CONNECTED, null));
@@ -96,12 +99,12 @@ class StatusPageBloc extends BaseBloc {
         inBleOperator.add(BleOpInfo(Operate._SCAN_DEVICE, null));
       } else if (rightList.length == 1) {
         print(
-            'StatusPageBloc._findInConnectedDevice 发现已连接了 一个以Race开头的设备:${rightList[0].name}激活 CONNECT_DEVICE');
+            'StatusPageBloc._findInConnectedDevice 发现已连接了一个以Race开头的设备: ${rightList[0].name}激活 CONNECT_DEVICE');
         inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0]));
       } else {
         // 提示用户手动选择连接的设备,
         print(
-            'StatusPageBloc._findInConnectedDevice 发现已连接了 多个以Race 开头的设备, 提示用户手动选择设备');
+            'StatusPageBloc._findInConnectedDevice 发现已连接了多个以Race开头的设备, 提示用户手动选择设备');
         _inSetBtnState
             .add(BtnStreamOpInfo(BleScanState.PLEASE_SELECT_DEVICE, rightList));
       }
@@ -111,7 +114,9 @@ class StatusPageBloc extends BaseBloc {
   // 扫描设备
   _scanDevice() {
     print('StatusPageBloc._scanDevice 监听到 扫描设备 请求');
-    FlutterBlue.instance.startScan(timeout: const Duration(seconds: 2)).then((_){
+    FlutterBlue.instance
+        .startScan(timeout: const Duration(seconds: 4))
+        .then((_) {
       _inSetBtnState.add(BtnStreamOpInfo(BleScanState.STOP_SCAN, null));
     });
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.SCANNING, null));
@@ -128,9 +133,9 @@ class StatusPageBloc extends BaseBloc {
       } else if (rightList.length == 1) {
         print(
             'StatusPageBloc._scanDevice 发现了一个合适的设备: ${rightList[0].device.name}, 正在连接');
+        inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
         inBleOperator
             .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList[0].device));
-        inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
       } else {
         print('StatusPageBloc._scanDevice 发现了多个合适设备: $rightList, 自动选择信号最强的设备');
         rightList = rightList.where((r) => r.rssi < 0).toList();
@@ -139,26 +144,15 @@ class StatusPageBloc extends BaseBloc {
             .add(BleOpInfo(Operate.CONNECT_DEVICE, rightList.first.device));
         inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
         print(
-            'StatusPageBloc._scanDevice 最终选择连接的设备是 ${rightList.first}, 发出 STOP_CANNING 请求');
+            'StatusPageBloc._scanDevice 最后选中的设备是 ${rightList.first},发出 STOP_CANNING');
       }
     });
   }
 
   _connectDevice(BluetoothDevice device) async {
     _inSetBtnState.add(BtnStreamOpInfo(BleScanState.CONNECTING, null));
-
     device.connect();
     currentRaceDevice = DeviceCc2640(device);
-
-
-
-//    BluetoothCharacteristic c = ((await currentRaceDevice.charMap)[DeviceCc2640.statusCharUuid]);
-//    c.value.listen((value){
-//
-//    });
-
-
-
 
     _inSetBtnState
         .add(BtnStreamOpInfo(BleScanState.SHOW_CONNECTED_DEVICE, device));

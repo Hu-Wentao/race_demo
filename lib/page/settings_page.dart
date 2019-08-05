@@ -10,14 +10,11 @@ import 'package:race_demo/race_device.dart';
 import 'package:race_demo/redux/app_redux.dart';
 import 'package:race_demo/widget/none_border_color_expansion_tile.dart';
 import 'package:race_demo/widget/radius_container_widget.dart';
+import 'package:race_demo/widget/radius_stream_expansion_tile.dart';
 import 'package:race_demo/widget/text_divider_widget.dart';
 
 class SettingsPage extends StatelessWidget {
-//  final HomeBloc homeBloc;
-
   const SettingsPage({Key key}) : super(key: key);
-
-//  const SettingsPage(this.homeBloc, {Key key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -82,33 +79,37 @@ class SettingsPage extends StatelessWidget {
     return StreamBuilder<UpdateProgressInfo>(
       stream: settingsBloc.outUpdateProgress,
       initialData: UpdateProgressInfo(
-        null,
+        OadPhase.UN_OAD,
         "init",
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
         final String oadPhaseMsg = snap.data.phaseMsg;
-
-        return NoneBorderColorExpansionTile(
+        return RadiusStreamExpansionTile(
           title: Text("Upgrade Firmware"),
-          trailing: StoreConnector<OadState, bool>(
+          trailing: StoreConnector<AppState, bool>(
             builder: (context, showBtnBool) => Offstage(
+              // 如果不在OAD, 则展示text 或者 一个按钮
               offstage: showBtnBool,
-              child: StoreConnector<DeviceState, bool>(
+              child: StoreConnector<AppState, bool>(
                 builder: (context, haveConnectedDevice) => haveConnectedDevice
-                    ? Text("Please Connect Device")
-                    : RaisedButton(
+                    ?  RaisedButton(
                         child: Text("Check for updates"),
                         onPressed: () {
-//                          StoreProvider.of<DeviceState>(context).state;// 如果在bloc中无法使用Store, 则考虑在此处使用
                           settingsBloc.inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.INIT_OAD, context));
                         },
-                      ),
-                converter: (store) => store.state.currentDevice == null,
+                      )
+                    : Text("Please Connect Device"),
+                converter: (appStore) => appStore.state.deviceState.currentDevice != null,
               ),
             ),
-            converter: (state) => !state.state.isOad,
+            converter: (appStore) {
+              print('SettingsPage._buildUpgradeFirmware ######## isOad 改变: ${appStore.state.oadState.oadPhase}.............................');
+              return appStore.state.oadState.isOad;
+            },
           ),
+          manualControl: false,
+          expansionStream: settingsBloc.outUpdateProgress.map((upi)=>upi.oadPhase != OadPhase.UN_OAD),
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 0),
@@ -130,7 +131,7 @@ class SettingsPage extends StatelessWidget {
             ),
             ListTile(
               leading: Text(
-                "Total\nProgress",
+                "OAD\nProgress",
                 textAlign: TextAlign.center,
                 style: greyTextStyle,
               ),
