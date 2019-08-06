@@ -26,7 +26,6 @@ dependencies:
   path_provider: ^1.2.0
   dio: ^2.1.13
   permission_handler: ^3.2.1+1
-#  flutter_downloader: ^1.1.9
   redux: ^3.0.0
   flutter_redux: ^0.5.3
 

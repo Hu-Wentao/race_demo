@@ -123,7 +123,7 @@ class StatusPage extends StatelessWidget {
           child: const Text("Scanning..."),
           onPressed: () {
             print('StatusPage._buildBtnBy 停止扫描...');
-            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+            inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING,));
           },
         );
       case BleScanState.STOP_SCAN:
@@ -131,13 +131,13 @@ class StatusPage extends StatelessWidget {
             child: const Text("Tap to Scan"),
             onPressed: () {
               print('StatusPage._buildBtnBy 点击按钮, 开始扫描');
-              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, null));
+              inBleOperator.add(BleOpInfo(Operate.CHECK_OPEN_BLE, context: context));
             });
       case BleScanState.CONNECTING:
         return RaisedButton(
             child: const Text("Connecting..."),
             onPressed: () {
-              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, null));
+              inBleOperator.add(BleOpInfo(Operate.STOP_SCANNING, context: context));
             });
         break;
       case BleScanState.PLEASE_OPEN_BLE:
@@ -168,7 +168,7 @@ class StatusPage extends StatelessWidget {
                   case "Race_OAD2":
                     print(
                         'StatusPage._buildBtnBy 发现列表找包含: ${d.name} 已自动选择该设备 #### todo ');
-                    inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, d));
+                    inBleOperator.add(BleOpInfo(Operate.CONNECT_DEVICE, context: context, device: d));
                     break;
                 }
               });
@@ -176,13 +176,10 @@ class StatusPage extends StatelessWidget {
             });
         break;
       case BleScanState.SHOW_CONNECTED_DEVICE:
-        // 更新 Store
-        StoreProvider.of<AppState>(context)
-            .dispatch(SetCurrentDeviceAction(info.data));
         return RaisedButton(
           child: Text("${(info.data as BluetoothDevice).name}"),
           onPressed: () => inBleOperator.add(BleOpInfo(
-              Operate.DISCONNECT_DEVICE, info.data as BluetoothDevice)),
+              Operate.DISCONNECT_DEVICE,context: context, device: info.data)),
         );
     }
   }

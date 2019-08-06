@@ -271,19 +271,20 @@ class UpdateProgressInfo {
 }
 
 Future<File> _getFirmwareFromFile() async {
-  const String firmwareName = "app_OAD2_16_CRC.bin";
+  const String firmwareName = "app_OAD1_16.bin";
 //  const String firmwareName = "from_net.bin";
-//  const String firmwareName = "firmware.bin";
   const String downloadUrl =
       "https://file.racehf.com/RaceHF_Bean/bean_latest.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
-  Directory dir = await getApplicationDocumentsDirectory();
+
+  Directory dir = await getTemporaryDirectory();
+//  Directory dir = await getApplicationDocumentsDirectory();
   File f = new File(dir.path + "/$firmwareName");
   if (!await f.exists() || firmwareName == "from_net.bin") {
     Response response = await Dio().download(downloadUrl, f.path);
     print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
   }
-  return new File(dir.path + "/$firmwareName");
+  return f;
 }
 
 /// 将二进制文件转换成 二维列表
