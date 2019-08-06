@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_blue/flutter_blue.dart';
 import 'package:flutter_redux/flutter_redux.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:race_demo/redux/app_redux.dart';
 
 import '../race_device.dart';
@@ -166,25 +167,21 @@ class SettingsPageBloc extends BaseBloc {
           updateCmd.oadPhase,
           "Open notify...",
         ));
-
-        StoreProvider.of<AppState>(updateCmd.context)
+        RaceState raceState = StoreProvider.of<AppState>(updateCmd.context)
             .state
             .deviceState
-            .currentDevice
-            .openAndListenCharNotify(inAddUpdateCmd, [
+            .currentDevice;
+
+        await raceState.openAndListenCharNotify(inAddUpdateCmd, [
           DeviceCc2640.identifyCharUuid,
           DeviceCc2640.blockCharUuid,
           DeviceCc2640.statusCharUuid
         ]);
+        await Future.delayed(const Duration(milliseconds: 300));
 
-        await Future.delayed(const Duration(milliseconds: 700));
-        print(
-            'SettingsPageBloc._exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
-        (await StoreProvider.of<AppState>(updateCmd.context)
-                .state
-                .deviceState
-                .currentDevice
-                .charMap)[DeviceCc2640.identifyCharUuid]
+        print('_exeUpdateCmd 向特征发送头文件: ${binContent[0].sublist(0, 16)}');
+
+        (await raceState.charMap)[DeviceCc2640.identifyCharUuid]
             .write(binContent[0], withoutResponse: true);
         break;
       case OadPhase.RECEIVE_NOTIFY:
@@ -277,14 +274,14 @@ Future<File> _getFirmwareFromFile() async {
       "https://file.racehf.com/RaceHF_Bean/bean_latest.bin";
 //      "https://raw.githubusercontent.com/Hu-Wentao/File_Center/master/app_OAD1_16.bin";
 
-  Directory dir = await getTemporaryDirectory();
-//  Directory dir = await getApplicationDocumentsDirectory();
+  Directory dir = await getApplicationDocumentsDirectory();
   File f = new File(dir.path + "/$firmwareName");
   if (!await f.exists() || firmwareName == "from_net.bin") {
     Response response = await Dio().download(downloadUrl, f.path);
     print('_getFirmwareFromNet response的信息:  ${response.data.toString()}');
   }
-  return f;
+//  return f;
+  return new File(dir.path + "/$firmwareName");
 }
 
 /// 将二进制文件转换成 二维列表

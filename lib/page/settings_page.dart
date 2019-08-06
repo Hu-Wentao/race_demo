@@ -89,10 +89,11 @@ class SettingsPage extends StatelessWidget {
           title: Text("Upgrade Firmware"),
           trailing: StoreConnector<AppState, bool>(
             builder: (context, showBtnBool) => Offstage(
-              // 如果不在OAD, 则展示text 或者 一个按钮
+              // 如果正在OAD, 则隐藏trailing
               offstage: showBtnBool,
               child: StoreConnector<AppState, bool>(
                 builder: (context, haveConnectedDevice) => haveConnectedDevice
+                // 当前是否已连接设备, 如果已连接, 则提示"检查更新", 否则提示 "请连接设备"
                     ?  RaisedButton(
                         child: Text("Check for updates"),
                         onPressed: () {
