@@ -81,31 +81,12 @@ class SettingsPage extends StatelessWidget {
     return StreamBuilder<UpdateProgressInfo>(
       stream: settingsBloc.outUpdateProgress,
       initialData: UpdateProgressInfo(
-        null,
+        OadPhase.UN_OAD,
+        "un oad",
         phraseProgress: 0.0,
       ),
       builder: (context, snap) {
-        String updatePhaseMsg = "Null";
-        switch (snap.data.updatePhase) {
-          case UpdatePhase.GET_FIRM:
-            settingsBloc.inAddTimerCmd.add(true); // 开始计时
-            updatePhaseMsg = "Downloading firm...";
-            break;
-          case UpdatePhase.REQUEST_MTU_PRIORITY:
-            updatePhaseMsg = "Request MTU & Priority...";
-            break;
-          case UpdatePhase.LISTEN_CHARA_AND_SEND_HEAD:
-            updatePhaseMsg = "Open characteristic notify...";
-            break;
-          case UpdatePhase.RECEIVE_NOTIFY:
-            updatePhaseMsg = "Sending Firmware...";
-            break;
-          case UpdatePhase.LISTENED_RESULT:
-            //todo 此处应显示 升级成功 或 升级失败.....................
-            updatePhaseMsg = "Receive Result";
-            settingsBloc.inAddTimerCmd.add(false);  // 计时结束
-            break;
-        }
+        String updatePhaseMsg = snap.data.phaseMsg;
 
         return NoneBorderColorExpansionTile(
           title: Text("Upgrade Firmware"),
@@ -118,8 +99,7 @@ class SettingsPage extends StatelessWidget {
                   child: RaisedButton(
                     child: Text("Check for updates"),
                     onPressed: () {
-                      _checkAndUpdateFirmware(
-                          snap.data, settingsBloc.inAddOadCmd);
+                      settingsBloc.inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.INIT_OAD, context, bleDevice: snap.data));
                     },
                   ),
                 );
@@ -171,14 +151,5 @@ class SettingsPage extends StatelessWidget {
         );
       },
     );
-  }
-
-  void _checkAndUpdateFirmware(
-      BluetoothDevice device, StreamSink<BluetoothDevice> inAddOadCmd) {
-    print(
-        'SettingsPage._checkAndUpdateFirmware 升级按钮被点击了! 当前已连接的设备: ${device.name}');
-    // TODO 检查固件版本
-    // 升级固件流程
-    inAddOadCmd.add(device);
   }
 }

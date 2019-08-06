@@ -12,6 +12,7 @@ const String DEVICE_NAME_START_WITH = "Race_";
 
 class StatusPageBloc extends BaseBloc {
   RaceDevice currentRaceDevice;
+  BleScanState currentScanState;
 
   @override
   void dispose() {
@@ -117,6 +118,9 @@ class StatusPageBloc extends BaseBloc {
 
     print('StatusPageBloc._scanDevice 正在监听扫描结果');
     FlutterBlue.instance.scanResults.listen((list) {
+      // 如果当前正在连接设备, 则忽略本次连接请求
+      if (currentScanState == BleScanState.CONNECTING || currentScanState == BleScanState.SHOW_CONNECTED_DEVICE) return;
+
       var rightList = list
           .where((d) => (d.advertisementData.localName
                   .startsWith(DEVICE_NAME_START_WITH) ||
@@ -171,8 +175,10 @@ enum Operate {
   _SCAN_DEVICE,
   // 连接设备, 该选项需要有参数
   CONNECT_DEVICE,
-  DISCONNECT_DEVICE,
+  // 停止扫描
   STOP_SCANNING,
+  // 断开连接
+  DISCONNECT_DEVICE,
 }
 
 class BtnStreamOpInfo {
