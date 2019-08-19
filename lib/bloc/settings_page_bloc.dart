@@ -21,21 +21,6 @@ class SettingsPageBloc extends BaseBloc {
   int updateStartTime = 0;
   Timer timer;
 
-  // 设备连接 事件的流入, 从 Status中流入, 在Settings中流出, 以后考虑用redux取代
-//  StreamController<BluetoothDevice> _transportDevice =
-//      StreamController.broadcast();
-
-//  StreamSink<BluetoothDevice> get inAddConnectedDevice => _transportDevice.sink;
-//
-//  Stream<BluetoothDevice> get outConnectedDevice => _transportDevice.stream;
-
-  // 控制OAD 开始与结束 // todo 可以与 _updateControl 合并
-//  StreamController<BluetoothDevice> _oadCtrl = StreamController();
-//
-//  StreamSink<BluetoothDevice> get inAddOadCmd => _oadCtrl.sink;
-//
-//  Stream<BluetoothDevice> get _outOadCmd => _oadCtrl.stream;
-
   // 升级控制
   StreamController<UpdateCtrlCmd> _updateControl = StreamController.broadcast();
 
@@ -70,7 +55,6 @@ class SettingsPageBloc extends BaseBloc {
   void dispose() {
     // 让设置Page 获取到 Device
     // 触发 OAD 事件     // 控制OAD的流程     // 向page展示当前的进度
-//    _oadCtrl.close();
     _updateControl.close();
     _updateFirmware.close();
 
@@ -124,7 +108,6 @@ class SettingsPageBloc extends BaseBloc {
           updateCmd.oadPhase,
           "Checking version...",
         ));
-
         // TODO: 检查固件版本, 然后直接返回到...... 待考虑....
 
         inAddUpdateCmd.add(UpdateCtrlCmd(OadPhase.GET_FIRM, updateCmd.context));
@@ -134,7 +117,6 @@ class SettingsPageBloc extends BaseBloc {
           updateCmd.oadPhase,
           "Downloading frimware...",
         ));
-
         binContent = await _getByteList(_getFirmwareFromFile());
         inAddUpdateCmd.add(UpdateCtrlCmd(
             Platform.isAndroid
